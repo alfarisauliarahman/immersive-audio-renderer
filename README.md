@@ -16,6 +16,8 @@ Format support is still early. The current release has been exercised with the s
 
 In other words, “supported” currently means the application has a code path for the format—not that every encoder, profile, malformed file, or real-world variant has already been verified. See [Format support and boundaries](docs/FORMAT_SUPPORT.md) for the current per-format validation status.
 
+![Immersive Audio Renderer displaying an authored DAMF scene, speaker view, meters, and interactive room view](docs/assets/immersive-audio-renderer-damf-room-view.png)
+
 ## What works
 
 - Native Dolby Atmos Master Fileset (`.atmos`) loading with `.atmos.audio`, `.atmos.metadata`, and `.atmos.dbmd` companion validation.
@@ -31,7 +33,9 @@ See [Format support and boundaries](docs/FORMAT_SUPPORT.md) for the exact matrix
 
 ## Quick start
 
-For normal use, download and run the Windows installer. A portable Windows x64 ZIP is also available for extract-and-run use. Both packages include OpenJOC, FFmpeg, and ffprobe; no separate codec setup or `PATH` editing is required. Windows WebView2 is also required and is normally already installed on supported Windows systems. The signed updater checks the public [release channel](https://github.com/alfarisauliarahman/immersive-audio-renderer-releases/releases) when the native app starts. In the portable build, accepting a future update switches to the normal installed distribution instead of rewriting the extracted folder in place.
+For normal use, download and run the Windows installer. A portable Windows x64 ZIP is also available for extract-and-run use. Both packages include OpenJOC, FFmpeg, and ffprobe; no separate codec setup or `PATH` editing is required. Windows WebView2 is also required and is normally already installed on supported Windows systems.
+
+The installed distribution checks the signed public [release channel](https://github.com/alfarisauliarahman/immersive-audio-renderer-releases/releases) for updates. The portable distribution has no automatic update check or update button; update it manually by downloading and extracting a newer portable ZIP.
 
 Development additionally requires Node.js/npm and a current stable Rust toolchain. Prepare the pinned FFmpeg sidecars before running or packaging the native application:
 

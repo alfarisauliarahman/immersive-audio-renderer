@@ -16,7 +16,7 @@ The initial screen loads the configured demonstration source when its local medi
 - **Room View** — interactive 3D position view.
 - **Bottom deck** — source type, selected object position/level, object controls, and timeline.
 - **Source Inspector** — file/container/codec/profile, audio format, duration, engine, cache state, and warnings.
-- **Update control** — checks the signed public release channel; when a newer version exists, press it to download, install, and restart.
+- **Update control (installed distribution only)** — checks the signed public release channel; when a newer version exists, press it to download, install, and restart. Portable builds omit this control and update manually.
 
 ## Opening ordinary audio
 

@@ -44,7 +44,7 @@ Installers, codec packs, password-protected archives, and executables found besi
 
 ## Release signing
 
-Native updates are accepted only when their updater artifact matches the public key embedded in the application. The private updater key must remain outside the repository and be backed up securely. Losing it requires a manual installer migration to a release carrying a new public key; disclosure requires immediate key rotation and incident review. A GitHub tag or checksum alone is not a substitute for the updater signature.
+Installed-distribution updates are accepted only when their updater artifact matches the public key embedded in the application. The portable distribution does not invoke the updater and must be replaced manually. The private updater key must remain outside the repository and be backed up securely. Losing it requires a manual installer migration to a release carrying a new public key; disclosure requires immediate key rotation and incident review. A GitHub tag or checksum alone is not a substitute for the updater signature.
 
 ## Sensitive and copyrighted files
 

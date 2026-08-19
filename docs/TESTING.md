@@ -61,6 +61,7 @@ The source must be a complete authorized DAMF fileset. Do not commit it or its g
 - `ffmpeg`, `ffprobe`, and OpenJOC sidecars work after installation even when no system FFmpeg is on `PATH`.
 - The installer contains no local fixture, Dolby website media, screenshot, chat export, or user master.
 - The update control checks the public channel, rejects invalid signatures, and installs a valid newer signed artifact only after confirmation.
+- The portable build has no update control and makes no startup request to the update endpoint.
 - The UI remains usable at the configured minimum window size.
 - Source Inspector opens/closes and accurately reflects source, engine, cache state, and warnings.
 - Room View drag orbits, right-drag pans, wheel zooms, and reset restores the home camera.

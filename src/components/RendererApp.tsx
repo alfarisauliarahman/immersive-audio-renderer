@@ -41,6 +41,7 @@ import { UpdateControl } from "./UpdateControl";
 const AUDIO_SOURCE = "/atmos-3.wav";
 const SCENE_SOURCE = "/atmos-objects1.json";
 const LOCAL_DEMO_AVAILABLE = import.meta.env.DEV;
+const UPDATE_CONTROL_ENABLED = import.meta.env.VITE_DISTRIBUTION !== "portable";
 
 type SourceDetails = {
   badge: string;
@@ -495,7 +496,7 @@ export function RendererApp() {
               event.target.value = "";
             }}
           />
-          <UpdateControl />
+          {UPDATE_CONTROL_ENABLED && <UpdateControl />}
           <button className="source-info-button" onClick={() => { setShowShortcuts(false); setShowSourceInfo((value) => !value); }}>SOURCE INFO</button>
           <button className="source-info-button" onClick={() => { setShowSourceInfo(false); setShowShortcuts((value) => !value); }}>SHORTCUTS</button>
           <button

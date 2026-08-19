@@ -2,7 +2,7 @@
 
 ## Summary
 
-Immersive Audio Renderer is designed to process selected media locally. The project-authored application code does not include an account system, advertising, analytics, telemetry, or cloud media upload. The installed application makes an HTTPS request to the public GitHub release channel to check for signed updates.
+Immersive Audio Renderer is designed to process selected media locally. The project-authored application code does not include an account system, advertising, analytics, telemetry, or cloud media upload. The installed distribution makes an HTTPS request to the public GitHub release channel to check for signed updates. The portable distribution does not perform update checks.
 
 This statement describes the current project source. Operating-system components and separately installed third-party tools remain subject to their own behavior and terms.
 
@@ -26,7 +26,7 @@ The application does not intentionally send media or diagnostics to the project 
 
 ## Update checks
 
-The native app checks `github.com/alfarisauliarahman/immersive-audio-renderer-releases` shortly after launch and when the user manually requests a check. GitHub receives the normal network metadata of that request, such as IP address and user agent. The request does not include selected media, paths, scene metadata, diagnostics, or account identity from this application. Download and installation occur only after the user presses the available update button.
+The installed distribution checks `github.com/alfarisauliarahman/immersive-audio-renderer-releases` shortly after launch and when the user manually requests a check. GitHub receives the normal network metadata of that request, such as IP address and user agent. The request does not include selected media, paths, scene metadata, diagnostics, or account identity from this application. Download and installation occur only after the user presses the available update button. The portable distribution omits this control and network request; users update it manually.
 
 ## Stored data
 

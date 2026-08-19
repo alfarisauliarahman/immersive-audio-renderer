@@ -31,8 +31,9 @@ Immersive Audio Renderer v$Version - Portable Windows x64
 3. Run "Immersive Audio Renderer.exe". No separate FFmpeg/OpenJOC install is needed.
 4. Microsoft Edge WebView2 is required and is normally already installed on Windows.
 
-The signed in-app updater installs the next release through the normal Windows
-installer; it does not rewrite this extracted portable folder in place.
+The portable distribution does not check for or install updates automatically.
+Download and extract a newer portable ZIP manually from the public release page:
+https://github.com/alfarisauliarahman/immersive-audio-renderer-releases/releases
 
 No demo music, private fixture, user master, or Dolby website media is included.
 See LICENSE and THIRD_PARTY_NOTICES.md for licensing details.

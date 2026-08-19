@@ -31,3 +31,4 @@ No changes yet.
 
 - Clarified the distinction between authored DAMF objects, OpenJOC diagnostic proxies, ordinary audio, and WAV + JSON visualization timelines.
 - Documented that Dolby website media is local test material and is not licensed for redistribution by this project.
+- Split distribution behavior: installed builds retain signed updates, while portable builds omit automatic checks and update manually.

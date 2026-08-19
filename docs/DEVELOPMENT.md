@@ -53,6 +53,16 @@ npm run tauri build -- --no-bundle
 
 Create the signed NSIS installer and updater artifacts by setting `TAURI_SIGNING_PRIVATE_KEY` to the protected updater-key path, setting its password variable when applicable, and running `npm run tauri build`. Never put the private key or password in the repository, shell history, logs, or release assets. Tauri emits the installer and its updater signature below the Cargo target bundle directory.
 
+Build the manual-update portable executable with the portable distribution flag, then pass that executable to `scripts/create-portable-package.ps1`:
+
+```powershell
+$env:VITE_DISTRIBUTION = 'portable'
+npm run tauri build -- --no-bundle
+Remove-Item Env:\VITE_DISTRIBUTION
+```
+
+The flag removes the update control and startup update request. Never package the normal installer executable as the portable release.
+
 ## Repository layout
 
 ```text

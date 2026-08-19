@@ -12,7 +12,7 @@ Platform: Windows x86-64 installer and portable ZIP
 - Export one multichannel speaker WAV or separate mono L/R/C/LFE/surround/height speaker feeds.
 - Extract an E-AC-3 elementary delivery stream without re-encoding and export all-access-unit forensic OAMD evidence.
 - Inspect ordinary local audio using bundled FFmpeg/ffprobe 8.1 LGPL sidecars.
-- Use live monitor meters, source-layout proxies, keyboard shortcuts, an interactive 3D room, and a signed in-app updater.
+- Use live monitor meters, source-layout proxies, keyboard shortcuts, and an interactive 3D room. The installed distribution also includes a signed in-app updater.
 
 ## Important boundaries
 
@@ -31,9 +31,9 @@ Platform: Windows x86-64 installer and portable ZIP
 
 The installer contains the application, OpenJOC, FFmpeg, ffprobe, and their notices. A separate codec pack or FFmpeg installation is not required. The application is a Windows GUI program and does not open its own terminal window.
 
-Alternatively, download the `windows-x64-portable.zip`, extract the complete folder, and run `Immersive Audio Renderer.exe`. Keep the included executables and `bin` directory together. The portable updater installs a future release through the normal Windows installer rather than modifying the extracted folder in place.
+Alternatively, download the `windows-x64-portable.zip`, extract the complete folder, and run `Immersive Audio Renderer.exe`. Keep the included executables and `bin` directory together. The portable build has no automatic updater; replace it manually with a newer portable ZIP.
 
-The native app checks the public binary channel for signed updates. It displays an available version first; download and installation begin only when the user presses the update control. Update artifacts must match the public key embedded in v0.1.0.
+The installed app checks the public binary channel for signed updates. It displays an available version first; download and installation begin only when the user presses the update control. Update artifacts must match the public key embedded in v0.1.0. The portable build performs no update request and displays no update control.
 
 ## Verification
 
