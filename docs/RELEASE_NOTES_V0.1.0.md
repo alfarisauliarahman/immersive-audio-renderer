@@ -2,7 +2,7 @@
 
 Release date: 2026-08-19  
 Release title: v0.1  
-Platform: Windows x86-64 installer
+Platform: Windows x86-64 installer and portable ZIP
 
 ## Highlights
 
@@ -30,6 +30,8 @@ Platform: Windows x86-64 installer
 3. Run the installer for the current Windows user, then start **Immersive Audio Renderer**.
 
 The installer contains the application, OpenJOC, FFmpeg, ffprobe, and their notices. A separate codec pack or FFmpeg installation is not required. The application is a Windows GUI program and does not open its own terminal window.
+
+Alternatively, download the `windows-x64-portable.zip`, extract the complete folder, and run `Immersive Audio Renderer.exe`. Keep the included executables and `bin` directory together. The portable updater installs a future release through the normal Windows installer rather than modifying the extracted folder in place.
 
 The native app checks the public binary channel for signed updates. It displays an available version first; download and installation begin only when the user presses the update control. Update artifacts must match the public key embedded in v0.1.0.
 

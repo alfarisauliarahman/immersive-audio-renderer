@@ -2,6 +2,7 @@ param(
   [Parameter(Mandatory = $true)] [string] $InstallerPath,
   [Parameter(Mandatory = $true)] [string] $SignaturePath,
   [Parameter(Mandatory = $true)] [string] $OutputDirectory,
+  [string] $PortableArchivePath,
   [string] $Version = "0.1.0"
 )
 
@@ -32,6 +33,12 @@ $manifest = [ordered]@{
 $manifest | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $OutputDirectory "latest.json") -Encoding utf8NoBOM
 
 $files = @($assetPath, $signatureOutput, (Join-Path $OutputDirectory "latest.json"))
+if ($PortableArchivePath) {
+  $portableName = "Immersive-Audio-Renderer_${Version}_windows-x64-portable.zip"
+  $portableOutput = Join-Path $OutputDirectory $portableName
+  Copy-Item -LiteralPath $PortableArchivePath -Destination $portableOutput -Force
+  $files += $portableOutput
+}
 $checksumLines = foreach ($file in $files) {
   $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $file).Hash.ToLowerInvariant()
   "$hash  $([System.IO.Path]::GetFileName($file))"

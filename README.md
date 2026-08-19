@@ -31,7 +31,7 @@ See [Format support and boundaries](docs/FORMAT_SUPPORT.md) for the exact matrix
 
 ## Quick start
 
-For normal use, download and run the Windows installer. It includes OpenJOC, FFmpeg, and ffprobe; no separate codec setup or `PATH` editing is required. Windows WebView2 is also required and is normally already installed on supported Windows systems. The signed updater checks the public [release channel](https://github.com/alfarisauliarahman/immersive-audio-renderer-releases/releases) when the native app starts.
+For normal use, download and run the Windows installer. A portable Windows x64 ZIP is also available for extract-and-run use. Both packages include OpenJOC, FFmpeg, and ffprobe; no separate codec setup or `PATH` editing is required. Windows WebView2 is also required and is normally already installed on supported Windows systems. The signed updater checks the public [release channel](https://github.com/alfarisauliarahman/immersive-audio-renderer-releases/releases) when the native app starts. In the portable build, accepting a future update switches to the normal installed distribution instead of rewriting the extracted folder in place.
 
 Development additionally requires Node.js/npm and a current stable Rust toolchain. Prepare the pinned FFmpeg sidecars before running or packaging the native application:
 
