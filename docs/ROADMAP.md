@@ -25,6 +25,8 @@ This roadmap records intended work, not promises. Capability claims in the READM
 - Expand DAMF validation diagnostics for unsupported versions, metadata forms, and CAF layouts.
 - Record OpenJOC version and render configuration in exported diagnostic reports.
 - Add source and output SHA-256 values to inspection reports.
+- Add a bounded OAMD Report Viewer that summarizes forensic JSON without treating it as a playable scene.
+- Evaluate an opt-in ReconstructionBasis audition lab only if every row remains explicitly unbound and diagnostic.
 
 ## Performance and usability
 

@@ -51,7 +51,9 @@ The application cannot truthfully claim that it can:
 - identify reconstruction rows as semantic objects such as vocal, drum, or effect stems;
 - provide object solo/mute from that delivery master.
 
-An E-AC-3 elementary stream can be extracted from an MP4/M4A container without turning it back into an authoring master. Diagnostic OpenJOC output can also be serialized as JSON, but it remains forensic bit evidence rather than a recovered DAMF scene. Speaker exports are decoded projection feeds: a file called `C.wav` is the center-speaker render, not an authored object channel. These actions are available in Source Inspector only after the native source is positively detected as JOC.
+An E-AC-3 elementary stream can be extracted from an MP4/M4A container without turning it back into an authoring master. Diagnostic OpenJOC output can also be serialized as JSON, but it remains forensic bit evidence rather than a recovered DAMF scene. It uses fields such as `input_media`, `access_unit_count`, and OAMD observations; it does not implement the application's visualization-timeline schema and cannot be loaded as a playable scene. Speaker exports are decoded projection feeds: a file called `C.wav` is the center-speaker render, not an authored object channel. These actions are available in Source Inspector only after the native source is positively detected as JOC.
+
+OpenJOC can expose diagnostic `ReconstructionBasis` rows, but its upstream contract explicitly states that semantic binding remains unresolved. This release does not expose those rows as user-facing objects. A future experimental lab may permit auditioning them only if every output remains labelled as a reconstructed diagnostic component rather than a vocal, instrument, effect, or original authored-object stem.
 
 ## WAV + JSON visualizer datasets
 
@@ -82,3 +84,5 @@ Use these labels consistently:
 - **monitor preview** for this application's own stereo render;
 - **codec-core fallback** when FFmpeg renders the non-JOC base path;
 - **reference render** only for output produced by an authorized reference renderer.
+- **forensic OAMD report** for all-access-unit diagnostic JSON that is not a scene timeline;
+- **reconstructed diagnostic component** for any future unbound OpenJOC reconstruction row.

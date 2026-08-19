@@ -40,9 +40,11 @@ Any displayed elements are diagnostic proxies. They are not recovered authored t
 For a positively identified JOC source, open **SOURCE INFO** and use:
 
 - **EXTRACT .EAC3** to stream-copy the E-AC-3 delivery bitstream without re-encoding;
-- **EXPORT OAMD JSON** to scan all access units and save OpenJOC's forensic diagnostic evidence.
+- **EXPORT OAMD JSON** to scan all access units and save OpenJOC's developer-oriented forensic diagnostic evidence;
 - **RENDER _layout_ WAV** to save one decoded multichannel speaker render;
 - **SPLIT _layout_ CHANNELS** to save one mono WAV per rendered speaker feed.
+
+The OAMD JSON is a report, not a scene. Do not select it alongside audio in **OPEN FILE**: it cannot drive playback, object trajectories, solo, or mute. Its purpose is codec research, damaged-frame diagnosis, access-unit comparison, and preservation of parser evidence.
 
 The split files (L, R, C, LFE, surrounds, and heights where applicable) are speaker outputs. They are not original Atmos object stems.
 

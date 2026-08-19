@@ -16,6 +16,7 @@ This directory contains the durable technical and project decisions for Immersiv
 - [Testing](TESTING.md) — automated and manual validation, fixture requirements, and acceptance checks.
 - [Local fixtures](LOCAL_FIXTURES.md) — private test-media inventory, provenance, and isolation rules.
 - [Roadmap](ROADMAP.md) — prioritized remaining work and explicit non-goals.
+- [v0.1.0 release notes](RELEASE_NOTES_V0.1.0.md) — shipped capabilities, verification, installation, and known boundaries.
 
 ## Repository policies
 

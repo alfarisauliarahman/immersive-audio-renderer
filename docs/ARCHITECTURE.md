@@ -66,6 +66,8 @@ For a positively identified JOC source, the Source Inspector also exposes two tr
 - OpenJOC scans all access units and writes forensic OAMD evidence to JSON.
 - OpenJOC renders decoded speaker feeds; FFmpeg channel splitting does not recover authored object stems.
 
+The forensic OAMD document is deliberately separate from the internal `AudioScene`/visualization JSON schema. Importing it as a timeline must fail closed: access-unit evidence is not sampled position/loudness scene data. OpenJOC diagnostic reconstruction rows are likewise outside the capability model while semantic binding remains unresolved.
+
 Both commands write a partial file, validate successful nonempty output (and valid JSON for diagnostics), then promote it to the user-selected destination. These operations preserve delivery data; they do not reconstruct authoring data.
 
 ### DAMF path

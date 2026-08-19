@@ -90,6 +90,10 @@ Install an authorized FFmpeg build and put the directory containing both executa
 
 This repository does not currently bundle FFmpeg. The exact build's license can vary with configure options; consult [FFmpeg legal guidance](https://ffmpeg.org/legal.html).
 
+## “The scene metadata has an unsupported schema”
+
+The JSON selected with the audio is not a compatible visualization timeline. A file named `*-oamd-forensic.json` is an all-access-unit codec report created by **EXPORT OAMD JSON**; it is not a playable scene and cannot provide object PCM or authored trajectories. Open the M4A/EAC3 source without that report. Only pair audio with a JSON file that follows this application's visualization-timeline schema.
+
 ## OpenJOC cannot be located
 
 The development sidecar should exist at:

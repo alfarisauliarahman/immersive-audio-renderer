@@ -95,6 +95,7 @@ The source must be a complete authorized DAMF fileset. Do not commit it or its g
 - Object solo, mute, and authored re-render remain disabled.
 - `.eac3` extraction produces a nonempty E-AC-3 elementary stream with the original stream duration and codec.
 - OAMD export produces valid JSON and remains labelled forensic-only.
+- Reopening an OAMD forensic report as a scene fails closed; documentation directs the user to open the audio source without it.
 - A 5.1 speaker render probes as six-channel float WAV in FL, FR, FC, LFE, Ls, Rs order.
 - Split speaker export produces six mono WAV files for a 5.1 target and never labels them object stems.
 - Cancelling a DAMF SOLO/MUTE job removes its partial WAV and keeps the prior monitor active.

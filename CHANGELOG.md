@@ -4,6 +4,10 @@ All notable project changes are documented here. The format follows [Keep a Chan
 
 ## Unreleased
 
+No changes yet.
+
+## 0.1.0 - 2026-08-19
+
 ### Added
 
 - Complete architecture, format-boundary, development, testing, fixture, performance, roadmap, contribution, security, licensing, and third-party documentation.
@@ -13,16 +17,6 @@ All notable project changes are documented here. The format follows [Keep a Chan
 - OpenJOC speaker rendering to a source-matched multichannel WAV or separate mono speaker-feed WAV files.
 - Source-layout-aware scene proxy meters while retaining an honest `LIVE 2.0` audible-monitor view.
 - Cooperative cancellation for DAMF SOLO/MUTE renders and a console-free Windows release executable.
-
-### Changed
-
-- Clarified the distinction between authored DAMF objects, OpenJOC diagnostic proxies, ordinary audio, and WAV + JSON visualization timelines.
-- Documented that Dolby website media is local test material and is not licensed for redistribution by this project.
-
-## 0.1.0 - 2026-08-19
-
-### Added
-
 - Tauri + React desktop renderer interface with 128-input overview, speaker view, interactive 3D room, transport, source inspector, and timeline.
 - Live post-monitor stereo meters and signal-derived loudness estimates.
 - Native media probing and stereo preparation through ffprobe/FFmpeg.
@@ -30,3 +24,8 @@ All notable project changes are documented here. The format follows [Keep a Chan
 - Native DAMF fileset validation, authored trajectory extraction, independent stereo preview rendering, object solo/mute variants, caching, and WAV export.
 - Browser and native WAV + JSON visualization-timeline adapter.
 - Demand-rendered Room View and bounded playback/meter update rates.
+
+### Changed
+
+- Clarified the distinction between authored DAMF objects, OpenJOC diagnostic proxies, ordinary audio, and WAV + JSON visualization timelines.
+- Documented that Dolby website media is local test material and is not licensed for redistribution by this project.

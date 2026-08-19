@@ -64,7 +64,7 @@ Some native integration tests require locally held media fixtures. See [Testing]
 | Stereo WAV + timeline JSON | Finished stereo audio | Supplied visualization timeline | No |
 | Ordinary local audio | FFmpeg-prepared or directly playable stereo | None | No |
 
-An M4A Atmos delivery master may expose an E-AC-3 bitstream and diagnostic metadata, but it cannot reconstruct the original DAMF, lossless authored trajectories, or independently addressable object stems. The Source Inspector can export the delivery bitstream, forensic OAMD JSON, and OpenJOC-rendered speaker feeds. Split L/R/C/LFE/etc. files are decoded speaker outputs—not recovered object stems. See [Format support and boundaries](docs/FORMAT_SUPPORT.md).
+An M4A Atmos delivery master may expose an E-AC-3 bitstream and diagnostic metadata, but it cannot reconstruct the original DAMF, lossless authored trajectories, or independently addressable object stems. The Source Inspector can export the delivery bitstream, a developer-oriented forensic OAMD report, and OpenJOC-rendered speaker feeds. The OAMD report is not a playable scene JSON and must not be paired with audio in the Open dialog. Split L/R/C/LFE/etc. files are decoded speaker outputs—not recovered object stems. See [Format support and boundaries](docs/FORMAT_SUPPORT.md).
 
 ## Repositories actually used
 
@@ -109,6 +109,7 @@ Dolby website media is not covered by this project's Apache-2.0 license. Local c
 - [Privacy](PRIVACY.md)
 - [Third-party notices](THIRD_PARTY_NOTICES.md)
 - [Changelog](CHANGELOG.md)
+- [v0.1.0 release notes](docs/RELEASE_NOTES_V0.1.0.md)
 
 ## License and trademarks
 
