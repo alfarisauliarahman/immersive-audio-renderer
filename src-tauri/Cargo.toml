@@ -1,0 +1,20 @@
+[package]
+name = "immersive-audio-renderer"
+version = "0.1.0"
+description = "Independent object-based immersive audio renderer and inspector"
+authors = ["Immersive Audio Renderer contributors"]
+edition = "2021"
+
+[lib]
+name = "immersive_audio_renderer_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_yaml_ng = "0.10"
+tauri = { version = "2", features = ["protocol-asset"] }
+tauri-plugin-dialog = "2"

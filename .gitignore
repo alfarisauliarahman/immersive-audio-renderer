@@ -1,0 +1,17 @@
+node_modules/
+dist/
+target/
+src-tauri/target/
+release/
+*.tsbuildinfo
+vite.config.js
+vite.config.d.ts
+*.log
+.DS_Store
+Thumbs.db
+
+# Keep private chat context and screenshots out of source control. The three
+# audio/timeline fixtures used by the app and tests remain tracked.
+dolby_atmos_chat_export/chat_export.md
+dolby_atmos_chat_export/attachments/*.png
+dolby_atmos_chat_export/attachments/atmos-objects.json
