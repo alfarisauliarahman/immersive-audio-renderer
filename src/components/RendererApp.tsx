@@ -7,15 +7,20 @@ import {
 } from "../adapters/dolbyDemo";
 import {
   desktopRuntimeAvailable,
+  exportEac3Bitstream,
   exportNativeWav,
+  exportOamdDiagnostics,
   prepareNativeMedia,
   probeNativeMedia,
   readNativeText,
   renderNativeDamfVariant,
+  selectEac3ExportDestination,
   selectNativeMedia,
+  selectOamdJsonExportDestination,
   selectWavExportDestination,
   type MediaProbe,
 } from "../adapters/nativeMedia";
+import { isShortcutEditableTarget, resolveRendererShortcut } from "../domain/keyboard";
 import { EMPTY_SAMPLE, sampleScene, type AudioScene } from "../domain/scene";
 import { useAudioTransport } from "../hooks/useAudioTransport";
 import { InputMatrix } from "./InputMatrix";
@@ -74,6 +79,7 @@ export function RendererApp() {
   const [muted, setMuted] = useState(false);
   const [sourceDetails, setSourceDetails] = useState<SourceDetails>(DEMO_DETAILS);
   const [showSourceInfo, setShowSourceInfo] = useState(false);
+  const [showShortcuts, setShowShortcuts] = useState(false);
   const [processing, setProcessing] = useState<string | null>(null);
   const [nativeSourcePath, setNativeSourcePath] = useState<string | null>(null);
   const [preparedPlaybackPath, setPreparedPlaybackPath] = useState<string | null>(null);
@@ -319,6 +325,82 @@ export function RendererApp() {
     }
   };
 
+  const exportDeliveryBitstream = async () => {
+    if (!nativeSourcePath || !sourceDetails.probe?.atmos || processing) return;
+    setSceneError(null);
+    setExportNotice(null);
+    const sourceStem = sourceDetails.probe.fileName.replace(/\.[^.]+$/, "");
+    try {
+      const destination = await selectEac3ExportDestination(`${sourceStem}-delivery.eac3`);
+      if (!destination) return;
+      setProcessing("EXTRACTING E-AC-3 DELIVERY BITSTREAM · NO RE-ENCODING");
+      const bytes = await exportEac3Bitstream(nativeSourcePath, destination);
+      setExportNotice(`EXTRACTED E-AC-3 ${(bytes / 1_048_576).toFixed(1)} MB · ${destination}`);
+    } catch (reason) {
+      setSceneError(reason instanceof Error ? reason.message : "The E-AC-3 bitstream could not be extracted.");
+    } finally {
+      setProcessing(null);
+    }
+  };
+
+  const exportDiagnosticJson = async () => {
+    if (!nativeSourcePath || !sourceDetails.probe?.atmos || processing) return;
+    setSceneError(null);
+    setExportNotice(null);
+    const sourceStem = sourceDetails.probe.fileName.replace(/\.[^.]+$/, "");
+    try {
+      const destination = await selectOamdJsonExportDestination(`${sourceStem}-oamd-forensic.json`);
+      if (!destination) return;
+      setProcessing("EXPORTING FORENSIC OAMD DIAGNOSTICS · ALL ACCESS UNITS");
+      const bytes = await exportOamdDiagnostics(nativeSourcePath, destination);
+      setExportNotice(`EXPORTED OAMD JSON ${(bytes / 1_048_576).toFixed(1)} MB · ${destination}`);
+    } catch (reason) {
+      setSceneError(reason instanceof Error ? reason.message : "The OAMD diagnostics could not be exported.");
+    } finally {
+      setProcessing(null);
+    }
+  };
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      const shortcut = resolveRendererShortcut({
+        key: event.key,
+        code: event.code,
+        ctrlKey: event.ctrlKey,
+        metaKey: event.metaKey,
+        altKey: event.altKey,
+        repeat: event.repeat,
+        editable: isShortcutEditableTarget(event.target),
+      });
+      if (!shortcut) return;
+      event.preventDefault();
+
+      switch (shortcut) {
+        case "play-pause": void transport.togglePlayback(); break;
+        case "stop": transport.stop(); break;
+        case "seek-back": transport.seek(Math.max(0, transport.currentTime - 10)); break;
+        case "seek-forward": transport.seek(Math.min(transport.duration || scene?.duration || 0, transport.currentTime + 10)); break;
+        case "toggle-mute": setMuted((value) => !value); break;
+        case "toggle-dim": setDimmed((value) => !value); break;
+        case "open-file": if (!processing) handleOpenClick(); break;
+        case "toggle-source-info":
+          setShowShortcuts(false);
+          setShowSourceInfo((value) => !value);
+          break;
+        case "toggle-shortcuts":
+          setShowSourceInfo(false);
+          setShowShortcuts((value) => !value);
+          break;
+        case "close-panels":
+          setShowSourceInfo(false);
+          setShowShortcuts(false);
+          break;
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [processing, scene?.duration, transport.currentTime, transport.duration, transport.seek, transport.stop, transport.togglePlayback]);
+
   const sample = useMemo(
     () => (scene ? sampleScene(scene, transport.currentTime) : EMPTY_SAMPLE),
     [scene, transport.currentTime],
@@ -326,6 +408,7 @@ export function RendererApp() {
 
   const selectedObject = sample.objects.find((object) => object.inputId === selectedInput);
   const statusError = sceneError ?? transport.error;
+  const canExportDeliveryData = Boolean(nativeSourcePath && sourceDetails.probe?.atmos && desktopRuntimeAvailable());
 
   return (
     <main className="renderer-app">
@@ -346,7 +429,8 @@ export function RendererApp() {
               event.target.value = "";
             }}
           />
-          <button className="source-info-button" onClick={() => setShowSourceInfo((value) => !value)}>SOURCE INFO</button>
+          <button className="source-info-button" onClick={() => { setShowShortcuts(false); setShowSourceInfo((value) => !value); }}>SOURCE INFO</button>
+          <button className="source-info-button" onClick={() => { setShowSourceInfo(false); setShowShortcuts((value) => !value); }}>SHORTCUTS</button>
           <button
             className="export-button"
             disabled={!preparedPlaybackPath || Boolean(processing)}
@@ -354,7 +438,7 @@ export function RendererApp() {
             onClick={() => void exportCurrentRender()}
           >EXPORT WAV</button>
           <button className="open-master-button" disabled={Boolean(processing)} onClick={handleOpenClick}><span>＋</span> OPEN FILE</button>
-          <div className="title-status"><i className={scene && !processing ? "online" : ""} />{processing ? "PREPARING SOURCE" : scene ? "MASTER READY" : "LOADING MASTER"}</div>
+          <div className="title-status"><i className={scene && !processing ? "online" : ""} />{processing ? "PROCESSING SOURCE" : scene ? "MASTER READY" : "LOADING MASTER"}</div>
           {showSourceInfo && (
             <section className="source-info-card">
               <header><strong>SOURCE INSPECTOR</strong><button onClick={() => setShowSourceInfo(false)}>×</button></header>
@@ -368,6 +452,32 @@ export function RendererApp() {
                 <div><dt>Engine</dt><dd>{sourceDetails.engine}{sourceDetails.cached ? " · cached" : ""}</dd></div>
               </dl>
               {sourceDetails.warning && <p>{sourceDetails.warning}</p>}
+              {canExportDeliveryData && (
+                <div className="delivery-export-section">
+                  <strong>DELIVERY DATA</strong>
+                  <div className="delivery-export-actions">
+                    <button disabled={Boolean(processing)} onClick={() => void exportDeliveryBitstream()}>EXTRACT .EAC3</button>
+                    <button disabled={Boolean(processing)} onClick={() => void exportDiagnosticJson()}>EXPORT OAMD JSON</button>
+                  </div>
+                  <p>Stream-copy and forensic diagnostics only. These exports cannot recreate a DAMF, authored trajectories, or lossless object stems.</p>
+                </div>
+              )}
+            </section>
+          )}
+          {showShortcuts && (
+            <section className="source-info-card shortcuts-card">
+              <header><strong>KEYBOARD SHORTCUTS</strong><button onClick={() => setShowShortcuts(false)}>×</button></header>
+              <dl className="shortcut-list">
+                <div><dt><kbd>SPACE</kbd> / <kbd>K</kbd></dt><dd>Play or pause</dd></div>
+                <div><dt><kbd>S</kbd></dt><dd>Stop and return to start</dd></div>
+                <div><dt><kbd>←</kbd> / <kbd>→</kbd></dt><dd>Seek backward or forward 10 seconds</dd></div>
+                <div><dt><kbd>M</kbd></dt><dd>Toggle monitor mute</dd></div>
+                <div><dt><kbd>D</kbd></dt><dd>Toggle monitor dim</dd></div>
+                <div><dt><kbd>O</kbd> / <kbd>CTRL+O</kbd></dt><dd>Open a source</dd></div>
+                <div><dt><kbd>I</kbd></dt><dd>Toggle Source Inspector</dd></div>
+                <div><dt><kbd>?</kbd></dt><dd>Toggle this shortcut reference</dd></div>
+                <div><dt><kbd>ESC</kbd></dt><dd>Close open information panels</dd></div>
+              </dl>
             </section>
           )}
         </div>

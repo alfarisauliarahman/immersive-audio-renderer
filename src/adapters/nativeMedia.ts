@@ -58,8 +58,34 @@ export async function selectWavExportDestination(defaultPath: string): Promise<s
   return typeof selected === "string" ? selected : null;
 }
 
+export async function selectEac3ExportDestination(defaultPath: string): Promise<string | null> {
+  const { save } = await import("@tauri-apps/plugin-dialog");
+  const selected = await save({
+    title: "Extract E-AC-3 delivery bitstream",
+    defaultPath,
+    filters: [{ name: "E-AC-3 elementary stream", extensions: ["eac3", "ec3"] }],
+  });
+  return typeof selected === "string" ? selected : null;
+}
+
+export async function selectOamdJsonExportDestination(defaultPath: string): Promise<string | null> {
+  const { save } = await import("@tauri-apps/plugin-dialog");
+  const selected = await save({
+    title: "Export forensic OAMD diagnostic JSON",
+    defaultPath,
+    filters: [{ name: "JSON diagnostics", extensions: ["json"] }],
+  });
+  return typeof selected === "string" ? selected : null;
+}
+
 export const exportNativeWav = (playbackPath: string, destinationPath: string) =>
   invoke<number>("export_wav", { playbackPath, destinationPath });
+
+export const exportEac3Bitstream = (sourcePath: string, destinationPath: string) =>
+  invoke<number>("export_eac3_bitstream", { sourcePath, destinationPath });
+
+export const exportOamdDiagnostics = (sourcePath: string, destinationPath: string) =>
+  invoke<number>("export_oamd_diagnostics", { sourcePath, destinationPath });
 
 export const probeNativeMedia = (path: string) => invoke<MediaProbe>("probe_media", { path });
 

@@ -40,7 +40,7 @@ button { color: inherit; }
 .title-status { display: flex; align-items: center; gap: 7px; color: #626d73; font-size: 8px; letter-spacing: .14em; }
 .title-status i { width: 6px; height: 6px; border-radius: 50%; background: #504b37; box-shadow: 0 0 8px #8b7430; }
 .title-status i.online { background: #20d477; box-shadow: 0 0 8px #20d477; }
-.title-actions { display: flex; align-items: center; gap: 14px; }
+.title-actions { display: flex; align-items: center; gap: 9px; }
 .hidden-file-input { display: none; }
 .open-master-button, .export-button { height: 25px; padding: 0 10px; border: 1px solid #24576a; background: #0b1b22; color: #7bd7f5; font-size: 8px; letter-spacing: .1em; cursor: pointer; }
 .open-master-button span { color: #d8f7ff; margin-right: 4px; }
@@ -57,6 +57,16 @@ button { color: inherit; }
 .source-info-card dt { color: #536068; font-size: 7px; text-transform: uppercase; letter-spacing: .08em; }
 .source-info-card dd { margin: 0; color: #bcc7cc; font: 8px Consolas, "Courier New", monospace; overflow-wrap: anywhere; }
 .source-info-card p { margin: 10px 0 0; padding: 8px; border-left: 2px solid #bf8d32; background: #302510; color: #dac28e; font-size: 8px; line-height: 1.45; }
+.delivery-export-section { margin-top: 11px; padding-top: 10px; border-top: 1px solid #202a30; }
+.delivery-export-section > strong { display: block; margin-bottom: 8px; color: #75c9e2; font-size: 7px; letter-spacing: .12em; }
+.delivery-export-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+.delivery-export-actions button { min-height: 27px; border: 1px solid #285069; background: #0d2029; color: #78d8f5; font-size: 7px; letter-spacing: .08em; cursor: pointer; }
+.delivery-export-actions button:hover:not(:disabled) { border-color: #3a83a5; background: #11303d; }
+.delivery-export-actions button:disabled { opacity: .35; cursor: not-allowed; }
+.delivery-export-section p { margin-top: 8px; }
+.shortcuts-card { width: 390px; }
+.source-info-card .shortcut-list div { grid-template-columns: 132px minmax(0,1fr); min-height: 21px; align-items: center; }
+.shortcut-list kbd { display: inline-block; min-width: 19px; padding: 2px 4px; border: 1px solid #34424a; border-bottom-color: #56646b; border-radius: 2px; background: #161e22; color: #d3e0e5; font: 7px Consolas, "Courier New", monospace; text-align: center; }
 
 .top-bar {
   display: grid; grid-template-columns: 140px 132px 172px 145px minmax(260px, 1fr) 110px;

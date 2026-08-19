@@ -1,9 +1,10 @@
-use serde::{Deserialize, Serialize};
+use serde::{de::IgnoredAny, Deserialize, Serialize};
 use serde_json::Value;
 use std::{
     collections::hash_map::DefaultHasher,
     fs::{self, File},
     hash::{Hash, Hasher},
+    io::BufReader,
     path::{Path, PathBuf},
     process::{Command, Output, Stdio},
     time::UNIX_EPOCH,
@@ -69,6 +70,76 @@ fn command_error(label: &str, output: &Output) -> String {
     } else {
         format!("{label} failed: {details}")
     }
+}
+
+fn export_partial_path(destination: &Path) -> Result<PathBuf, String> {
+    let file_name = destination
+        .file_name()
+        .and_then(|name| name.to_str())
+        .ok_or_else(|| "The export destination has no valid file name.".to_owned())?;
+    Ok(destination.with_file_name(format!(".{file_name}.partial")))
+}
+
+fn validate_export_destination(
+    source: &Path,
+    destination: &Path,
+    extensions: &[&str],
+) -> Result<PathBuf, String> {
+    if !source.is_file() {
+        return Err("The selected source file no longer exists.".to_owned());
+    }
+    let extension = destination
+        .extension()
+        .and_then(|extension| extension.to_str())
+        .unwrap_or_default();
+    if !extensions
+        .iter()
+        .any(|allowed| extension.eq_ignore_ascii_case(allowed))
+    {
+        return Err(format!(
+            "The export destination must use one of these extensions: {}.",
+            extensions
+                .iter()
+                .map(|extension| format!(".{extension}"))
+                .collect::<Vec<_>>()
+                .join(", ")
+        ));
+    }
+    let parent = destination
+        .parent()
+        .filter(|parent| parent.is_dir())
+        .ok_or_else(|| "The export destination directory does not exist.".to_owned())?;
+    let source = source
+        .canonicalize()
+        .map_err(|error| format!("Could not resolve the source file: {error}"))?;
+    let destination_name = destination
+        .file_name()
+        .ok_or_else(|| "The export destination has no file name.".to_owned())?;
+    let resolved_destination = parent
+        .canonicalize()
+        .map_err(|error| format!("Could not resolve the export directory: {error}"))?
+        .join(destination_name);
+    if resolved_destination == source {
+        return Err("Choose a different destination from the source file.".to_owned());
+    }
+    Ok(resolved_destination)
+}
+
+fn promote_export(partial: &Path, destination: &Path, label: &str) -> Result<u64, String> {
+    let bytes = fs::metadata(partial)
+        .map_err(|error| format!("{label} did not produce an output file: {error}"))?
+        .len();
+    if bytes == 0 {
+        let _ = fs::remove_file(partial);
+        return Err(format!("{label} produced an empty output file."));
+    }
+    if destination.is_file() {
+        fs::remove_file(destination)
+            .map_err(|error| format!("Could not replace the existing export: {error}"))?;
+    }
+    fs::rename(partial, destination)
+        .map_err(|error| format!("Could not finalize the export: {error}"))?;
+    Ok(bytes)
 }
 
 fn string_field(value: &Value, key: &str) -> String {
@@ -549,6 +620,97 @@ async fn export_wav(playback_path: String, destination_path: String) -> Result<u
     .map_err(|error| format!("WAV export task failed: {error}"))?
 }
 
+#[tauri::command]
+async fn export_eac3_bitstream(
+    source_path: String,
+    destination_path: String,
+) -> Result<u64, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let source = PathBuf::from(source_path);
+        let probe = probe_path(&source)?;
+        if !probe.codec_name.eq_ignore_ascii_case("eac3") {
+            return Err("The selected source does not contain an E-AC-3 audio stream.".to_owned());
+        }
+        let destination =
+            validate_export_destination(&source, Path::new(&destination_path), &["ec3", "eac3"])?;
+        let partial = export_partial_path(&destination)?;
+        if partial.is_file() {
+            fs::remove_file(&partial).map_err(|error| {
+                format!("Could not replace an incomplete bitstream export: {error}")
+            })?;
+        }
+
+        let output = hidden_command("ffmpeg")
+            .args(["-v", "error", "-y", "-i"])
+            .arg(&source)
+            .args(["-map", "0:a:0", "-c:a", "copy", "-f", "eac3"])
+            .arg(&partial)
+            .output()
+            .map_err(|error| {
+                format!("ffmpeg could not be started for E-AC-3 extraction: {error}")
+            })?;
+        if !output.status.success() {
+            let _ = fs::remove_file(&partial);
+            return Err(command_error("E-AC-3 bitstream extraction", &output));
+        }
+        promote_export(&partial, &destination, "E-AC-3 bitstream extraction")
+    })
+    .await
+    .map_err(|error| format!("E-AC-3 export task failed: {error}"))?
+}
+
+#[tauri::command]
+async fn export_oamd_diagnostics(
+    app: tauri::AppHandle,
+    source_path: String,
+    destination_path: String,
+) -> Result<u64, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let source = PathBuf::from(source_path);
+        let probe = probe_path(&source)?;
+        if !probe.atmos {
+            return Err(
+                "OAMD diagnostics require a positively identified E-AC-3 JOC source.".to_owned(),
+            );
+        }
+        let destination =
+            validate_export_destination(&source, Path::new(&destination_path), &["json"])?;
+        let partial = export_partial_path(&destination)?;
+        if partial.is_file() {
+            fs::remove_file(&partial).map_err(|error| {
+                format!("Could not replace incomplete OAMD diagnostics: {error}")
+            })?;
+        }
+        let renderer = locate_openjoc(&app)?;
+        let output = hidden_command(renderer)
+            .arg("diagnose-oamd")
+            .arg(&source)
+            .arg("--all-access-units")
+            .arg("--json")
+            .arg(&partial)
+            .arg("--force")
+            .output()
+            .map_err(|error| {
+                format!("OpenJOC could not be started for OAMD diagnostics: {error}")
+            })?;
+        if !output.status.success() {
+            let _ = fs::remove_file(&partial);
+            return Err(command_error("OpenJOC OAMD diagnostics", &output));
+        }
+        let report = File::open(&partial)
+            .map_err(|error| format!("Could not read the generated OAMD diagnostics: {error}"))?;
+        let mut deserializer = serde_json::Deserializer::from_reader(BufReader::new(report));
+        IgnoredAny::deserialize(&mut deserializer)
+            .map_err(|error| format!("OpenJOC generated invalid diagnostic JSON: {error}"))?;
+        deserializer
+            .end()
+            .map_err(|error| format!("OpenJOC generated trailing invalid JSON data: {error}"))?;
+        promote_export(&partial, &destination, "OpenJOC OAMD diagnostics")
+    })
+    .await
+    .map_err(|error| format!("OAMD diagnostic export task failed: {error}"))?
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -558,7 +720,9 @@ pub fn run() {
             prepare_local_source,
             render_damf_variant,
             read_local_text,
-            export_wav
+            export_wav,
+            export_eac3_bitstream,
+            export_oamd_diagnostics
         ])
         .run(tauri::generate_context!())
         .expect("error while running Immersive Audio Renderer");
@@ -592,5 +756,29 @@ mod tests {
         assert_eq!(probe.codec_name, "eac3");
         assert_eq!(probe.sample_rate, 48_000);
         assert!(probe.atmos);
+    }
+
+    #[test]
+    fn validates_delivery_export_extensions() {
+        let source = fixture("01. Helium Balloon.m4a");
+        let directory = source.parent().expect("fixture directory");
+        assert!(validate_export_destination(
+            &source,
+            &directory.join("delivery.eac3"),
+            &["ec3", "eac3"]
+        )
+        .is_ok());
+        assert!(validate_export_destination(
+            &source,
+            &directory.join("diagnostics.json"),
+            &["json"]
+        )
+        .is_ok());
+        assert!(validate_export_destination(
+            &source,
+            &directory.join("delivery.wav"),
+            &["ec3", "eac3"]
+        )
+        .is_err());
     }
 }

@@ -1,55 +1,117 @@
 # Immersive Audio Renderer
 
-Independent desktop renderer/inspector for object-based immersive audio. It recreates the workflow and information density of a professional renderer while keeping source provenance and decoder limits explicit.
+Immersive Audio Renderer is an independent Windows desktop application for inspecting and previewing object-based audio sources. It combines a dense renderer-style interface with explicit source capabilities: authored DAMF objects are treated differently from delivery bitstreams, ordinary channel audio, and visualization-only metadata.
 
-## Current scope
+This is an inspection and preview tool. It is not Dolby's licensed renderer, is not a mastering or certification system, and is not affiliated with or endorsed by Dolby Laboratories.
 
-- Functional React + TypeScript renderer UI, styled after a modern professional Atmos workflow.
-- Live 128-input matrix, actual post-monitor stereo meters, an explicitly labelled 7.1.4 scene-proxy view, signal-derived loudness estimates, speaker view, and an orbit/pan/zoom WebGL room.
-- Synchronized adapter for the exported Dolby web-demo pair: binaural stereo WAV + precomputed object JSON.
-- Browser and native Windows import for local audio or a matching WAV + JSON pair.
-- Native `ffprobe` source inspection, conversion cache, and deterministic local playback preparation.
-- E-AC-3 JOC/Atmos detection and local 2.0 speaker rendering through the bundled OpenJOC 0.7.0 executable.
-- Native Dolby Atmos Master Fileset (`.atmos`) import with companion `.atmos.audio`, `.atmos.metadata`, and `.atmos.dbmd` validation.
-- Authored DAMF object trajectories, measured object levels, and independent object solo/mute preview re-renders.
-- Fast DAMF solo rendering that decodes only the selected authored channel, cached-full-mix subtraction for mute variants, and WAV export of the active monitor render.
-- Source Inspector with codec, profile, sample rate, channel layout, duration, render engine, cache state, and capability boundaries.
+## What works
 
-The files in `dolby_atmos_chat_export/` are source context and test fixtures. They are intentionally left unchanged.
+- Native Dolby Atmos Master Fileset (`.atmos`) loading with `.atmos.audio`, `.atmos.metadata`, and `.atmos.dbmd` companion validation.
+- Authored DAMF trajectories, object levels, object solo/mute preview renders, stereo monitor export, and render caching.
+- E-AC-3 JOC sources in M4A/MP4 or raw EC-3 containers through the bundled OpenJOC 0.7.0 command-line renderer.
+- Lossless container-level extraction of an E-AC-3 elementary stream plus forensic all-access-unit OAMD diagnostic JSON export.
+- Ordinary WAV, FLAC, MP3, AAC, Ogg, and Opus inspection and stereo preparation through system-provided FFmpeg/ffprobe.
+- Paired stereo WAV + object-timeline JSON playback for visualizer-style datasets.
+- Live post-monitor stereo meters, signal-derived loudness estimates, 128-input overview, speaker view, and an interactive orbit/pan/zoom WebGL room.
+- Capability-aware controls: solo, mute, and re-render are enabled only when independently addressable authored PCM is available.
 
-## Run
+See [Format support and boundaries](docs/FORMAT_SUPPORT.md) for the exact matrix.
+
+## Quick start
+
+Requirements:
+
+- Windows with WebView2.
+- Node.js and npm compatible with the locked Vite toolchain.
+- A current stable Rust toolchain for the Tauri desktop build.
+- `ffmpeg.exe` and `ffprobe.exe` on `PATH` for native media inspection/conversion.
+
+Install and run the browser development UI:
 
 ```powershell
 npm install
 npm run dev
 ```
 
-For the desktop shell:
+Run the native Tauri application:
 
 ```powershell
 npm run tauri dev
 ```
 
-The native media path currently requires `ffmpeg.exe` and `ffprobe.exe` on `PATH`. OpenJOC is bundled under `src-tauri/bin/` and retains its Apache-2.0 license in `OPENJOC-LICENSE.txt`.
-
-To create only the release executable (no installer bundle):
+Build the frontend and portable executable without creating an installer:
 
 ```powershell
+npm run build
 npm run tauri build -- --no-bundle
 ```
 
-Prepared audio is cached under the application's local cache directory. Reopening an unchanged source reuses the completed WAV; partial OpenJOC output is never treated as playable.
+Run tests:
 
-For DAMF, select the small `.atmos` manifest and keep its three companion files in the same directory. The first open streams the entire multichannel PCM essence and can take several minutes on a hard disk; completed full, solo, and mute variants are cached independently. Solo and mute variants still read the interleaved source essence from disk, but avoid the original all-channel remix cost.
+```powershell
+npm test
+cargo test --manifest-path src-tauri/Cargo.toml
+```
 
-## Important product boundary
+Some native integration tests require locally held media fixtures. See [Testing](docs/TESTING.md) and [Local fixtures](docs/LOCAL_FIXTURES.md).
 
-The included `atmos-3.wav` is a finished 24-bit/48 kHz binaural stereo render. Its matching `atmos-objects1.json` drives visualization only; it cannot solo, mute, move, or re-render individual objects.
+## How source types differ
 
-OpenJOC can render the supplied E-AC-3 JOC master to a speaker mix and report its OAMD element count. The current upstream semantic binding is unresolved, so the M4A element dots are deliberately labelled as a position proxy rather than authored trajectories or discrete object stems. Solo, mute, and re-render remain disabled unless a future source adapter exposes trustworthy object PCM and metadata binding.
+| Source | Audible path | Position display | Object solo/mute |
+| --- | --- | --- | --- |
+| DAMF `.atmos` fileset | Independent stereo preview renderer | Authored trajectory | Yes |
+| E-AC-3 JOC delivery master | OpenJOC 2.0 speaker render, with FFmpeg core fallback | Diagnostic proxy only | No |
+| Stereo WAV + timeline JSON | Finished stereo audio | Supplied visualization timeline | No |
+| Ordinary local audio | FFmpeg-prepared or directly playable stereo | None | No |
 
-The live loudness panel is calculated from the actual post-monitor stereo samples. Its LUFS values are useful monitor estimates, but are deliberately not presented as a certified ITU-R BS.1770 measurement. `LIVE 2.0` meters show the audible signal; `SCENE 7.1.4` remains a metadata-derived spatial projection.
+An M4A Atmos delivery master may expose an E-AC-3 bitstream and diagnostic metadata, but it cannot reconstruct the original DAMF, lossless authored trajectories, or independently addressable object stems. The Source Inspector can export the delivery bitstream and forensic OAMD JSON while preserving those labels. See [Format support and boundaries](docs/FORMAT_SUPPORT.md).
 
-A DAMF source is different: its manifest explicitly binds authored bed/object PCM to authored metadata. The app therefore enables real trajectory display, object levels, solo, mute, and re-render for DAMF. Its audible output is still an independent stereo inspection preview using equal-power object panning, automatic monitor make-up gain (+24 dB full mix, +36 dB solo), and compression—not Dolby's licensed renderer or a certification/reference render.
+## Repositories actually used
 
-This project is an independent immersive-audio tool and is not affiliated with or endorsed by Dolby Laboratories.
+Only the following upstream projects are direct foundations of this codebase. Repositories previously evaluated but not integrated are intentionally omitted.
+
+| Project | Use in this application | License |
+| --- | --- | --- |
+| [OpenJOC](https://github.com/chyinan/OpenJOC) | Bundled E-AC-3 JOC inspection and 2.0 rendering | Apache-2.0 |
+| [Tauri](https://github.com/tauri-apps/tauri) | Native desktop shell and Rust/JavaScript bridge | MIT or Apache-2.0 |
+| [Tauri plugins workspace](https://github.com/tauri-apps/plugins-workspace) | Native open/save dialogs | MIT or Apache-2.0 |
+| [React](https://github.com/react/react) | User interface | MIT |
+| [three.js](https://github.com/mrdoob/three.js) | WebGL 3D scene | MIT |
+| [React Three Fiber](https://github.com/pmndrs/react-three-fiber) | React integration for three.js | MIT |
+| [Serde](https://github.com/serde-rs/serde), [serde_json](https://github.com/serde-rs/json), [serde-yaml-ng](https://github.com/acatton/serde-yaml-ng) | Rust manifest, metadata, and timeline parsing | MIT and/or Apache-2.0; see notices |
+| [FFmpeg](https://github.com/FFmpeg/FFmpeg) | External `ffmpeg`/`ffprobe` processes supplied by the user/system | LGPL-2.1-or-later by default; build-dependent |
+| [Vite](https://github.com/vitejs/vite), [TypeScript](https://github.com/microsoft/TypeScript), and [Vitest](https://github.com/vitest-dev/vitest) | Development, build, and tests | MIT or Apache-2.0 |
+
+The complete locked dependency graphs are recorded in `package-lock.json` and `src-tauri/Cargo.lock`. Direct dependency versions and redistribution notes are in [Third-party notices](THIRD_PARTY_NOTICES.md).
+
+## Media provenance
+
+The stereo WAV + JSON development pair originated from the official [Dolby Atmos Visualizer Music](https://www.dolby.com/atmos-visualizer-music/) experience. That WAV is a finished two-channel render and the JSON is a separate visualization timeline; neither is an Atmos master.
+
+Dolby website media is not covered by this project's Apache-2.0 license. Local copies are for private testing only and must not be committed, published, or included in a release without permission from the rightsholder. The local fixture inventory and isolation rules are documented in [Local fixtures](docs/LOCAL_FIXTURES.md). Before making this repository public, all third-party media already present in Git history must be removed from the complete history.
+
+## Documentation
+
+- [Documentation index](docs/README.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [Format support and boundaries](docs/FORMAT_SUPPORT.md)
+- [User guide](docs/USER_GUIDE.md)
+- [Troubleshooting](docs/TROUBLESHOOTING.md)
+- [Development](docs/DEVELOPMENT.md)
+- [Testing](docs/TESTING.md)
+- [Local fixtures](docs/LOCAL_FIXTURES.md)
+- [Performance](docs/PERFORMANCE.md)
+- [Roadmap](docs/ROADMAP.md)
+- [Contributing](CONTRIBUTING.md)
+- [Code of conduct](CODE_OF_CONDUCT.md)
+- [Support](SUPPORT.md)
+- [Security policy](SECURITY.md)
+- [Privacy](PRIVACY.md)
+- [Third-party notices](THIRD_PARTY_NOTICES.md)
+- [Changelog](CHANGELOG.md)
+
+## License and trademarks
+
+Project-authored source code and documentation are licensed under the [Apache License 2.0](LICENSE). Third-party components and media retain their own licenses and are described separately in [Third-party notices](THIRD_PARTY_NOTICES.md).
+
+Dolby, Dolby Atmos, and related marks are trademarks of their respective owners. Their use here describes file formats and interoperability only; it does not imply certification, affiliation, sponsorship, or endorsement.
