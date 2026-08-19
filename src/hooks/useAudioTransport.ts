@@ -56,6 +56,15 @@ export function useAudioTransport({
   const needsMonitorProcessing = monitorBoostDb > 0;
 
   useEffect(() => {
+    if (!source) {
+      audioRef.current = null;
+      setDuration(0);
+      setCurrentTime(0);
+      setPlaying(false);
+      setError(null);
+      setSignal(SILENT_SIGNAL);
+      return;
+    }
     const audio = new Audio();
     // Tauri exposes native files through its asset protocol, which is a
     // different origin from the app.  Web Audio deliberately outputs silence

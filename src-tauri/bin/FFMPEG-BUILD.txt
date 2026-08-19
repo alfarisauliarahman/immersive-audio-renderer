@@ -1,0 +1,18 @@
+FFmpeg 8.1 LGPL Windows x86-64 distribution notice
+
+Binary package:
+  ffmpeg-n8.1-latest-win64-lgpl-8.1.zip
+
+Build distributor and corresponding build scripts:
+  https://github.com/BtbN/FFmpeg-Builds
+
+Upstream FFmpeg source:
+  https://github.com/FFmpeg/FFmpeg/tree/n8.1
+
+Pinned archive SHA-256:
+  e05564dd43f25170e7532508394fc54d1c52fe7bd19c1773280abf2885039350
+
+The bundled ffmpeg.exe and ffprobe.exe are separate unmodified programs from
+the named LGPL build. See FFMPEG-LICENSE.txt. Project-authored code is not
+covered by that license merely because these programs are distributed beside
+the application.

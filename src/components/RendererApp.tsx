@@ -36,9 +36,11 @@ import { RoomView } from "./RoomView";
 import { SpeakerView } from "./SpeakerView";
 import { Timeline } from "./Timeline";
 import { TopBar } from "./TopBar";
+import { UpdateControl } from "./UpdateControl";
 
 const AUDIO_SOURCE = "/atmos-3.wav";
 const SCENE_SOURCE = "/atmos-objects1.json";
+const LOCAL_DEMO_AVAILABLE = import.meta.env.DEV;
 
 type SourceDetails = {
   badge: string;
@@ -69,6 +71,14 @@ const DEMO_DETAILS: SourceDetails = {
   warning: null,
 };
 
+const EMPTY_DETAILS: SourceDetails = {
+  badge: "NO SOURCE",
+  engine: "Open a local source to begin",
+  probe: null,
+  cached: false,
+  warning: null,
+};
+
 const formatDuration = (seconds: number) => {
   if (!Number.isFinite(seconds) || seconds <= 0) return "—";
   const minutes = Math.floor(seconds / 60);
@@ -76,14 +86,16 @@ const formatDuration = (seconds: number) => {
 };
 
 export function RendererApp() {
-  const [scene, setScene] = useState<AudioScene | null>(null);
+  const [scene, setScene] = useState<AudioScene | null>(() => LOCAL_DEMO_AVAILABLE
+    ? null
+    : createAudioOnlyScene("Open a source", { sourceLabel: "NO SOURCE LOADED" }));
   const [sceneError, setSceneError] = useState<string | null>(null);
-  const [audioSource, setAudioSource] = useState(AUDIO_SOURCE);
-  const [selectedInput, setSelectedInput] = useState<number | null>(12);
+  const [audioSource, setAudioSource] = useState(LOCAL_DEMO_AVAILABLE ? AUDIO_SOURCE : "");
+  const [selectedInput, setSelectedInput] = useState<number | null>(LOCAL_DEMO_AVAILABLE ? 12 : null);
   const [attenuation, setAttenuation] = useState(0);
   const [dimmed, setDimmed] = useState(false);
   const [muted, setMuted] = useState(false);
-  const [sourceDetails, setSourceDetails] = useState<SourceDetails>(DEMO_DETAILS);
+  const [sourceDetails, setSourceDetails] = useState<SourceDetails>(LOCAL_DEMO_AVAILABLE ? DEMO_DETAILS : EMPTY_DETAILS);
   const [showSourceInfo, setShowSourceInfo] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [processing, setProcessing] = useState<string | null>(null);
@@ -108,6 +120,7 @@ export function RendererApp() {
   });
 
   useEffect(() => {
+    if (!LOCAL_DEMO_AVAILABLE) return;
     let live = true;
     loadDolbyDemoScene(SCENE_SOURCE)
       .then((loaded) => live && setScene(loaded))
@@ -482,6 +495,7 @@ export function RendererApp() {
               event.target.value = "";
             }}
           />
+          <UpdateControl />
           <button className="source-info-button" onClick={() => { setShowShortcuts(false); setShowSourceInfo((value) => !value); }}>SOURCE INFO</button>
           <button className="source-info-button" onClick={() => { setShowSourceInfo(false); setShowShortcuts((value) => !value); }}>SHORTCUTS</button>
           <button

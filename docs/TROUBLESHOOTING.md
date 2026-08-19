@@ -22,7 +22,7 @@ Open **SOURCE INFO** and inspect the engine and warning.
 - E-AC-3 JOC should show OpenJOC output or a labelled codec-core fallback.
 - A preparation error means the app should not treat a partial file as playable.
 
-Verify external tools:
+Development builds can verify the bundled or fallback tools directly:
 
 ```powershell
 ffmpeg -version
@@ -86,9 +86,7 @@ The current implementation also requires the supported 24-bit interleaved CAF pa
 
 ## FFmpeg or ffprobe is not found
 
-Install an authorized FFmpeg build and put the directory containing both executables on `PATH`. Restart the terminal/app after changing `PATH`.
-
-This repository does not currently bundle FFmpeg. The exact build's license can vary with configure options; consult [FFmpeg legal guidance](https://ffmpeg.org/legal.html).
+The official installer bundles pinned FFmpeg/ffprobe sidecars, so users should not install codec packs or edit `PATH`. Reinstall the latest official build and verify that antivirus software did not quarantine either sidecar. Developers must run `scripts/prepare-ffmpeg.ps1`; development builds fall back to `PATH` only when a prepared sidecar is absent.
 
 ## “The scene metadata has an unsupported schema”
 
@@ -112,4 +110,4 @@ Do not delete an entire user profile or broad cache root. Preserve the original 
 
 ## Browser development UI differs from the executable
 
-The browser UI at `127.0.0.1:1420` does not have the same native Tauri command environment as the packaged app. Use the portable/native build when testing file dialogs, native paths, FFmpeg/OpenJOC invocation, DAMF rendering, caching, and export.
+The browser UI at `127.0.0.1:1420` does not have the same native Tauri command environment as the packaged app. Use the installed/native build when testing file dialogs, native paths, FFmpeg/OpenJOC invocation, updates, DAMF rendering, caching, and export.

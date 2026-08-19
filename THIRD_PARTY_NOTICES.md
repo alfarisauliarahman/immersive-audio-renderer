@@ -2,7 +2,7 @@
 
 Immersive Audio Renderer's project-authored source and documentation are licensed under Apache-2.0. The dependencies and media described below retain their own licenses. This document summarizes direct dependencies and special distribution boundaries; the locked files remain the authoritative version inventory for the complete transitive graph.
 
-## Bundled runtime component
+## Bundled runtime components
 
 ### OpenJOC 0.7.0
 
@@ -12,6 +12,18 @@ Immersive Audio Renderer's project-authored source and documentation are license
 - Bundled license text: `src-tauri/bin/OPENJOC-LICENSE.txt`.
 
 OpenJOC is an independent clean-room research implementation. Its upstream documentation states that semantic binding remains unresolved. This application must not present its diagnostic reconstruction rows or proxy positions as verified authored object stems or trajectories.
+
+### FFmpeg and ffprobe 8.1
+
+- Upstream source: [FFmpeg n8.1](https://github.com/FFmpeg/FFmpeg/tree/n8.1).
+- Build distributor and scripts: [BtbN/FFmpeg-Builds](https://github.com/BtbN/FFmpeg-Builds).
+- Package: `ffmpeg-n8.1-latest-win64-lgpl-8.1.zip`.
+- Archive SHA-256: `e05564dd43f25170e7532508394fc54d1c52fe7bd19c1773280abf2885039350`.
+- Use: bundled unmodified Windows x86-64 sidecars for media probing, ordinary media conversion, channel splitting, stream copy, and labelled codec-core fallback.
+- License: LGPL version 3 or later for this selected build.
+- Bundled license/provenance: `src-tauri/bin/FFMPEG-LICENSE.txt` and `src-tauri/bin/FFMPEG-BUILD.txt`.
+
+The executable files are release inputs prepared by `scripts/prepare-ffmpeg.ps1` and are intentionally ignored by Git because each exceeds GitHub's normal single-file limit. Their absence from a source checkout does not change their inclusion in the Windows installer.
 
 ## Direct application dependencies
 
@@ -26,6 +38,8 @@ Versions below reflect the current lockfiles on 2026-08-19.
 | Tauri JavaScript API | 2.11.1 | Native command/asset bridge | Apache-2.0 OR MIT | [tauri-apps/tauri](https://github.com/tauri-apps/tauri) |
 | Tauri Rust crate | 2.11.5 | Native application runtime | Apache-2.0 OR MIT | [tauri-apps/tauri](https://github.com/tauri-apps/tauri) |
 | Tauri dialog plugin | 2.7.2 | Native open/save dialogs | MIT OR Apache-2.0 | [tauri-apps/plugins-workspace](https://github.com/tauri-apps/plugins-workspace) |
+| Tauri updater plugin | 2.x (lockfile) | Signed update checking and installation | MIT OR Apache-2.0 | [tauri-apps/plugins-workspace](https://github.com/tauri-apps/plugins-workspace) |
+| Tauri process plugin | 2.x (lockfile) | Restart after update installation | MIT OR Apache-2.0 | [tauri-apps/plugins-workspace](https://github.com/tauri-apps/plugins-workspace) |
 | Serde | 1.0.229 | Rust serialization | MIT OR Apache-2.0 | [serde-rs/serde](https://github.com/serde-rs/serde) |
 | serde_json | 1.0.151 | JSON parsing/serialization | MIT OR Apache-2.0 | [serde-rs/json](https://github.com/serde-rs/json) |
 | serde-yaml-ng | 0.10.0 | DAMF YAML parsing | MIT | [acatton/serde-yaml-ng](https://github.com/acatton/serde-yaml-ng) |
@@ -45,14 +59,7 @@ The application includes transitive dependencies of these packages. Review `pack
 
 Type declaration packages and transitive build packages are recorded in `package-lock.json`.
 
-## External system components
-
-### FFmpeg and ffprobe
-
-- Source: [github.com/FFmpeg/FFmpeg](https://github.com/FFmpeg/FFmpeg)
-- Use: external processes for source probing and ordinary media conversion; also used for labelled codec-core fallback.
-- Distribution: not bundled by this repository; users currently provide their own build on `PATH`.
-- License: FFmpeg is LGPL-2.1-or-later by default, but optional GPL components change the license of a particular build. Consult the official [FFmpeg legal and license guidance](https://ffmpeg.org/legal.html) for the exact binary being used or distributed.
+## External system component
 
 ### Microsoft Edge WebView2
 

@@ -9,7 +9,7 @@ Read:
 - [Format support and boundaries](docs/FORMAT_SUPPORT.md)
 - [Known roadmap work](docs/ROADMAP.md)
 
-Confirm you are using the latest portable build or latest `main`, then reproduce the issue with a file you are authorized to use.
+Confirm you are using the latest installed build or latest `main`, then reproduce the issue with a file you are authorized to use.
 
 ## Where to ask
 
@@ -26,12 +26,12 @@ Include:
 
 - application version or commit SHA;
 - Windows version, CPU/GPU, RAM, and storage type;
-- portable executable or development mode;
+- installed release or development mode;
 - source container, codec/profile, sample rate, channel count, duration, and approximate size;
 - Source Inspector engine, cache state, and full warning text;
 - exact steps, expected result, and observed result;
 - whether the issue survives a cold cache and application restart;
-- relevant FFmpeg/OpenJOC version information;
+- relevant bundled FFmpeg/OpenJOC version information shown in the release/notices;
 - logs with usernames, personal paths, tokens, and commercial titles redacted.
 
 For performance reports, also follow [Performance](docs/PERFORMANCE.md).

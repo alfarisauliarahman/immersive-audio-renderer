@@ -31,8 +31,36 @@
     }
   },
   "bundle": {
-    "active": false,
-    "targets": "all",
-    "externalBin": ["bin/openjoc"]
+    "active": true,
+    "targets": ["nsis"],
+    "createUpdaterArtifacts": true,
+    "publisher": "Immersive Audio Renderer contributors",
+    "homepage": "https://github.com/alfarisauliarahman/immersive-audio-renderer",
+    "externalBin": ["bin/openjoc", "bin/ffmpeg", "bin/ffprobe"],
+    "resources": [
+      "bin/OPENJOC-LICENSE.txt",
+      "bin/FFMPEG-LICENSE.txt",
+      "bin/FFMPEG-BUILD.txt",
+      "../LICENSE",
+      "../THIRD_PARTY_NOTICES.md"
+    ],
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser",
+        "languages": ["English", "Indonesian"],
+        "displayLanguageSelector": false
+      }
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEQwNzZGQUIzQ0REODkyQTYKUldTbWt0ak5zL3AyMEYycDZ0ejVGZFN4WXg0bXRuMUE5SStpKzdNYWx1LzhUaDNsWHdXVDNtMTcK",
+      "endpoints": [
+        "https://github.com/alfarisauliarahman/immersive-audio-renderer-releases/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installMode": "passive"
+      }
+    }
   }
 }

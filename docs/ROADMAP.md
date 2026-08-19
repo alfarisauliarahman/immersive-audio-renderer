@@ -9,7 +9,7 @@ This roadmap records intended work, not promises. Capability claims in the READM
 - Produce a clean-checkout build and test report.
 - Generate a complete dependency license/SBOM report for release artifacts.
 - Narrow the Tauri local asset-protocol scope and review command permissions.
-- Decide whether FFmpeg remains a user prerequisite or is distributed with a precisely documented build and license configuration.
+- Automate clean-room installer/updater verification in CI without exposing the signing key.
 
 ## High priority
 

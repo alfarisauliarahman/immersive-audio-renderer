@@ -31,16 +31,20 @@ The application processes untrusted local media and metadata and launches select
 - YAML/JSON and container parsing;
 - DAMF companion-path and PCM-size arithmetic;
 - Tauri local asset access;
-- FFmpeg/ffprobe executable resolution through `PATH`;
-- the bundled OpenJOC sidecar;
+- the bundled FFmpeg/ffprobe and OpenJOC sidecars;
+- signed update metadata, release assets, and updater-key custody;
 - export destinations and cache replacement;
 - Web Audio loading of local asset-protocol URLs.
 
-The application is not a sandbox. Do not open hostile media on a machine containing sensitive data. Keep FFmpeg, WebView2, the operating system, and project dependencies updated.
+The application is not a sandbox. Do not open hostile media on a machine containing sensitive data. Keep the application, WebView2, the operating system, and project dependencies updated.
 
 ## Untrusted binaries
 
-Installers, codec packs, password-protected archives, and executables found beside test media are not dependencies. Do not run them. The only intentional project sidecar is the documented OpenJOC executable under `src-tauri/bin/`, accompanied by its upstream Apache-2.0 license.
+Installers, codec packs, password-protected archives, and executables found beside test media are not dependencies. Do not run them. Intentional sidecars are OpenJOC plus the pinned LGPL FFmpeg/ffprobe build documented under `src-tauri/bin/`; each is accompanied by license and provenance information.
+
+## Release signing
+
+Native updates are accepted only when their updater artifact matches the public key embedded in the application. The private updater key must remain outside the repository and be backed up securely. Losing it requires a manual installer migration to a release carrying a new public key; disclosure requires immediate key rotation and incident review. A GitHub tag or checksum alone is not a substitute for the updater signature.
 
 ## Sensitive and copyrighted files
 

@@ -2,7 +2,7 @@
 
 ## Summary
 
-Immersive Audio Renderer is designed to process selected media locally. The project-authored application code does not include an account system, advertising, analytics, telemetry, cloud upload, or a project-operated network service.
+Immersive Audio Renderer is designed to process selected media locally. The project-authored application code does not include an account system, advertising, analytics, telemetry, or cloud media upload. The installed application makes an HTTPS request to the public GitHub release channel to check for signed updates.
 
 This statement describes the current project source. Operating-system components and separately installed third-party tools remain subject to their own behavior and terms.
 
@@ -20,9 +20,13 @@ The Source Inspector displays a subset of this information locally.
 
 ## Local processing and external tools
 
-FFmpeg/ffprobe are launched from the user's system `PATH`. OpenJOC is launched as a bundled local sidecar. Source paths and selected output paths are passed to those local processes as command arguments.
+FFmpeg/ffprobe and OpenJOC are launched as bundled local sidecars. Source paths and selected output paths are passed to those local processes as command arguments. Development builds can fall back to matching tools on `PATH` when a local sidecar is absent.
 
 The application does not intentionally send media or diagnostics to the project maintainers. Users are responsible for the provenance, confidentiality, and authorization of every selected source.
+
+## Update checks
+
+The native app checks `github.com/alfarisauliarahman/immersive-audio-renderer-releases` shortly after launch and when the user manually requests a check. GitHub receives the normal network metadata of that request, such as IP address and user agent. The request does not include selected media, paths, scene metadata, diagnostics, or account identity from this application. Download and installation occur only after the user presses the available update button.
 
 ## Stored data
 

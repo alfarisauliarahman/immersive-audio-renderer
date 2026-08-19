@@ -8,9 +8,9 @@ The current development target is Windows.
 - A current stable Rust toolchain and Cargo.
 - Microsoft C++ build prerequisites required by Tauri on Windows.
 - Microsoft Edge WebView2 runtime.
-- `ffmpeg.exe` and `ffprobe.exe` available on `PATH` for native media workflows.
+- PowerShell with network access when preparing the pinned FFmpeg release inputs.
 
-OpenJOC 0.7.0 for Windows x86-64 is bundled as a Tauri sidecar in `src-tauri/bin/`. Do not replace that executable without also verifying its version, source, checksum, behavior, and license file.
+OpenJOC 0.7.0 for Windows x86-64 is bundled as a Tauri sidecar in `src-tauri/bin/`. FFmpeg/ffprobe 8.1 LGPL sidecars are reproducibly prepared from the pinned BtbN archive. Do not replace any executable without also verifying its version, source, checksum, behavior, and license file.
 
 ## Install and run
 
@@ -18,6 +18,7 @@ Install JavaScript dependencies exactly from the lockfile:
 
 ```powershell
 npm ci
+.\scripts\prepare-ffmpeg.ps1
 ```
 
 Run the frontend only:
@@ -34,6 +35,8 @@ npm run tauri dev
 
 The development server is fixed to `http://127.0.0.1:1420` by `vite.config.ts` and `src-tauri/tauri.conf.json`.
 
+The dev server may expose locally held fixtures from `dolby_atmos_chat_export/attachments/`. Production builds set Vite's `publicDir` to `false`; changing that release boundary requires a media-provenance and redistribution review.
+
 ## Build
 
 Build the frontend:
@@ -42,20 +45,20 @@ Build the frontend:
 npm run build
 ```
 
-Build a portable release executable without producing installer bundles:
+Build a local release executable without producing installer bundles:
 
 ```powershell
 npm run tauri build -- --no-bundle
 ```
 
-Installer generation is intentionally outside the current release workflow. Do not modify or publish an installer artifact unless that work is explicitly requested and its signing/distribution implications have been reviewed.
+Create the signed NSIS installer and updater artifacts by setting `TAURI_SIGNING_PRIVATE_KEY` to the protected updater-key path, setting its password variable when applicable, and running `npm run tauri build`. Never put the private key or password in the repository, shell history, logs, or release assets. Tauri emits the installer and its updater signature below the Cargo target bundle directory.
 
 ## Repository layout
 
 ```text
 src/                         React/TypeScript UI, adapters, domain, and hooks
 src-tauri/src/               Rust native backend and DAMF implementation
-src-tauri/bin/               Bundled OpenJOC sidecar and its license
+src-tauri/bin/               Bundled sidecars plus license/provenance files
 src-tauri/capabilities/      Tauri command permissions
 docs/                        Technical and project documentation
 dolby_atmos_chat_export/     Private research context and local fixture area
@@ -122,8 +125,9 @@ Before publishing a release:
 3. Run the automated and manual checks in `docs/TESTING.md`.
 4. Build from a clean checkout using locked dependencies.
 5. Verify the OpenJOC binary version and bundled Apache-2.0 license.
-6. Verify whether the chosen external FFmpeg build is distributed or remains a user prerequisite; comply with the exact build's license.
-7. Generate hashes for published binaries and scan the artifacts with current security tooling.
-8. Confirm README capability claims against the released executable.
-9. Update `CHANGELOG.md` and the application version.
-10. Keep Dolby and other third-party media out of the release.
+6. Run `scripts/prepare-ffmpeg.ps1`, verify the pinned archive checksum, and confirm the LGPL license/provenance files are bundled.
+7. Build with the protected updater private key and preserve the generated installer signature.
+8. Generate `latest.json`, SHA-256 hashes, and scan the artifacts with current security tooling.
+9. Install on a clean Windows account, verify sidecars work without system FFmpeg, and exercise the signed update check.
+10. Confirm README capability claims against the released executable and update `CHANGELOG.md` plus the application version.
+11. Keep Dolby and other third-party media out of both the installer and public binary release channel.

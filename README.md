@@ -10,7 +10,7 @@ This is an inspection and preview tool. It is not Dolby's licensed renderer, is 
 - Authored DAMF trajectories, object levels, object solo/mute preview renders, stereo monitor export, and render caching.
 - E-AC-3 JOC sources in M4A/MP4 or raw EC-3 containers through the bundled OpenJOC 0.7.0 command-line renderer.
 - Lossless container-level extraction of an E-AC-3 elementary stream, forensic OAMD JSON, and decoded speaker-feed export as multichannel or split mono WAV.
-- Ordinary WAV, FLAC, MP3, AAC, Ogg, and Opus inspection and stereo preparation through system-provided FFmpeg/ffprobe.
+- Ordinary WAV, FLAC, MP3, AAC, Ogg, and Opus inspection and stereo preparation through the bundled FFmpeg/ffprobe build.
 - Paired stereo WAV + object-timeline JSON playback for visualizer-style datasets.
 - Live post-monitor stereo meters, signal-derived loudness estimates, 128-input overview, speaker view, and an interactive orbit/pan/zoom WebGL room.
 - Capability-aware controls: solo, mute, and re-render are enabled only when independently addressable authored PCM is available.
@@ -19,12 +19,13 @@ See [Format support and boundaries](docs/FORMAT_SUPPORT.md) for the exact matrix
 
 ## Quick start
 
-Requirements:
+For normal use, download and run the Windows installer. It includes OpenJOC, FFmpeg, and ffprobe; no separate codec setup or `PATH` editing is required. Windows WebView2 is also required and is normally already installed on supported Windows systems. The signed updater checks the public [release channel](https://github.com/alfarisauliarahman/immersive-audio-renderer-releases/releases) when the native app starts.
 
-- Windows with WebView2.
-- Node.js and npm compatible with the locked Vite toolchain.
-- A current stable Rust toolchain for the Tauri desktop build.
-- `ffmpeg.exe` and `ffprobe.exe` on `PATH` for native media inspection/conversion.
+Development additionally requires Node.js/npm and a current stable Rust toolchain. Prepare the pinned FFmpeg sidecars before running or packaging the native application:
+
+```powershell
+.\scripts\prepare-ffmpeg.ps1
+```
 
 Install and run the browser development UI:
 
@@ -39,7 +40,7 @@ Run the native Tauri application:
 npm run tauri dev
 ```
 
-Build the frontend and portable executable without creating an installer:
+Build the frontend and unsigned local application executable without creating an installer:
 
 ```powershell
 npm run build
@@ -79,7 +80,7 @@ Only the following upstream projects are direct foundations of this codebase. Re
 | [three.js](https://github.com/mrdoob/three.js) | WebGL 3D scene | MIT |
 | [React Three Fiber](https://github.com/pmndrs/react-three-fiber) | React integration for three.js | MIT |
 | [Serde](https://github.com/serde-rs/serde), [serde_json](https://github.com/serde-rs/json), [serde-yaml-ng](https://github.com/acatton/serde-yaml-ng) | Rust manifest, metadata, and timeline parsing | MIT and/or Apache-2.0; see notices |
-| [FFmpeg](https://github.com/FFmpeg/FFmpeg) | External `ffmpeg`/`ffprobe` processes supplied by the user/system | LGPL-2.1-or-later by default; build-dependent |
+| [FFmpeg](https://github.com/FFmpeg/FFmpeg) / [BtbN builds](https://github.com/BtbN/FFmpeg-Builds) | Bundled pinned Windows x86-64 LGPL `ffmpeg`/`ffprobe` sidecars | LGPL-3.0-or-later for the selected build; see notices |
 | [Vite](https://github.com/vitejs/vite), [TypeScript](https://github.com/microsoft/TypeScript), and [Vitest](https://github.com/vitest-dev/vitest) | Development, build, and tests | MIT or Apache-2.0 |
 
 The complete locked dependency graphs are recorded in `package-lock.json` and `src-tauri/Cargo.lock`. Direct dependency versions and redistribution notes are in [Third-party notices](THIRD_PARTY_NOTICES.md).

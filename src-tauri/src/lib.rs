@@ -64,6 +64,25 @@ fn hidden_command(program: impl AsRef<std::ffi::OsStr>) -> Command {
     command
 }
 
+fn bundled_tool_or_path(name: &str) -> PathBuf {
+    let executable = format!("{name}.exe");
+    if let Ok(current_exe) = std::env::current_exe() {
+        if let Some(parent) = current_exe.parent() {
+            let bundled = parent.join(&executable);
+            if bundled.is_file() {
+                return bundled;
+            }
+        }
+    }
+    let development = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("bin")
+        .join(format!("{name}-x86_64-pc-windows-msvc.exe"));
+    if development.is_file() {
+        return development;
+    }
+    PathBuf::from(name)
+}
+
 fn command_error(label: &str, output: &Output) -> String {
     let stderr = String::from_utf8_lossy(&output.stderr).trim().to_owned();
     let stdout = String::from_utf8_lossy(&output.stdout).trim().to_owned();
@@ -166,7 +185,7 @@ fn probe_path(path: &Path) -> Result<MediaProbe, String> {
         return Err("The selected media file does not exist.".to_owned());
     }
 
-    let output = hidden_command("ffprobe")
+    let output = hidden_command(bundled_tool_or_path("ffprobe"))
         .args([
             "-v",
             "error",
@@ -321,7 +340,7 @@ fn locate_openjoc(app: &tauri::AppHandle) -> Result<PathBuf, String> {
 }
 
 fn render_with_ffmpeg(source: &Path, output_path: &Path) -> Result<(), String> {
-    let output = hidden_command("ffmpeg")
+    let output = hidden_command(bundled_tool_or_path("ffmpeg"))
         .args(["-v", "error", "-y", "-i"])
         .arg(source)
         .args([
@@ -674,7 +693,7 @@ async fn export_eac3_bitstream(
             })?;
         }
 
-        let output = hidden_command("ffmpeg")
+        let output = hidden_command(bundled_tool_or_path("ffmpeg"))
             .args(["-v", "error", "-y", "-i"])
             .arg(&source)
             .args(["-map", "0:a:0", "-c:a", "copy", "-f", "eac3"])
@@ -833,7 +852,7 @@ async fn export_atmos_speaker_channels(
                 })?;
             }
             let pan = format!("pan=mono|c0=c{index}");
-            let output = hidden_command("ffmpeg")
+            let output = hidden_command(bundled_tool_or_path("ffmpeg"))
                 .args(["-v", "error", "-y", "-i"])
                 .arg(&rendered)
                 .args(["-map", "0:a:0", "-af", &pan, "-c:a", "pcm_f32le"])
@@ -856,6 +875,8 @@ async fn export_atmos_speaker_channels(
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_process::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
             probe_media,

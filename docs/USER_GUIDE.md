@@ -2,7 +2,7 @@
 
 ## Starting the application
 
-Run the portable executable for the complete desktop experience. `npm run dev` opens the browser development UI, which can play browser-supported files but does not provide every native Tauri operation.
+Install and run the native Windows application for the complete desktop experience. The installer includes the required FFmpeg/ffprobe and OpenJOC sidecars. `npm run dev` opens the browser development UI, which can play browser-supported files but does not provide every native Tauri operation.
 
 The initial screen loads the configured demonstration source when its local media is present. Use **OPEN FILE** to inspect another source.
 
@@ -16,6 +16,7 @@ The initial screen loads the configured demonstration source when its local medi
 - **Room View** — interactive 3D position view.
 - **Bottom deck** — source type, selected object position/level, object controls, and timeline.
 - **Source Inspector** — file/container/codec/profile, audio format, duration, engine, cache state, and warnings.
+- **Update control** — checks the signed public release channel; when a newer version exists, press it to download, install, and restart.
 
 ## Opening ordinary audio
 

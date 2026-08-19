@@ -29,10 +29,12 @@ Run Rust tests:
 cargo test --manifest-path src-tauri/Cargo.toml
 ```
 
-Build the portable native executable:
+Prepare bundled tools and build the signed NSIS installer (release credentials required):
 
 ```powershell
-npm run tauri build -- --no-bundle
+.\scripts\prepare-ffmpeg.ps1
+$env:TAURI_SIGNING_PRIVATE_KEY = 'C:\secure\immersive-audio-renderer.key'
+npm run tauri build
 ```
 
 Run all commands from the repository root. A green unit-test run is not a substitute for playing real audio through the packaged executable.
@@ -55,7 +57,10 @@ The source must be a complete authorized DAMF fileset. Do not commit it or its g
 
 ### Application shell
 
-- The executable opens without a console window or installer dependency.
+- The NSIS installer completes for the current user and creates no console window when the app starts.
+- `ffmpeg`, `ffprobe`, and OpenJOC sidecars work after installation even when no system FFmpeg is on `PATH`.
+- The installer contains no local fixture, Dolby website media, screenshot, chat export, or user master.
+- The update control checks the public channel, rejects invalid signatures, and installs a valid newer signed artifact only after confirmation.
 - The UI remains usable at the configured minimum window size.
 - Source Inspector opens/closes and accurately reflects source, engine, cache state, and warnings.
 - Room View drag orbits, right-drag pans, wheel zooms, and reset restores the home camera.

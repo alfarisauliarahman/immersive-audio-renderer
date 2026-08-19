@@ -24,6 +24,8 @@ No changes yet.
 - Native DAMF fileset validation, authored trajectory extraction, independent stereo preview rendering, object solo/mute variants, caching, and WAV export.
 - Browser and native WAV + JSON visualization-timeline adapter.
 - Demand-rendered Room View and bounded playback/meter update rates.
+- Current-user NSIS installer containing the pinned FFmpeg/ffprobe 8.1 LGPL and OpenJOC sidecars.
+- Signed in-app update checking, download, installation, and restart through a public binary-only release channel.
 
 ### Changed
 

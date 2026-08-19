@@ -50,7 +50,7 @@ The Tauri backend is Rust under `src-tauri/src/`.
 
 `lib.rs` invokes system `ffprobe` to identify the first audio stream. Directly playable PCM WAV files can be returned unchanged; other ordinary formats are converted by system `ffmpeg` to a 48 kHz stereo float WAV in the application cache.
 
-The backend executes external tools as child processes and reports bounded errors to the UI. FFmpeg binaries are not bundled by this repository.
+The backend executes sidecar tools as child processes and reports bounded errors to the UI. Release builds bundle the pinned FFmpeg/ffprobe LGPL build and OpenJOC; development resolution checks the adjacent sidecar, then `src-tauri/bin`, then `PATH`.
 
 ### E-AC-3 JOC path
 
