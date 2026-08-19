@@ -54,7 +54,7 @@ The backend executes external tools as child processes and reports bounded error
 
 ### E-AC-3 JOC path
 
-For a source positively identified as E-AC-3 with an Atmos/JOC profile, the backend invokes the bundled OpenJOC 0.7.0 executable. The application currently requests a 2.0 speaker render. It also runs OpenJOC's OAMD diagnostic command for a bounded element-count report.
+For a source positively identified as E-AC-3 with an Atmos/JOC profile, the backend invokes the bundled OpenJOC 0.7.0 executable. Playback requests a 2.0 speaker render. Export can request 2.0, 5.1, 7.1, or 7.1.4 and optionally uses FFmpeg to split the multichannel render into mono speaker feeds. It also runs OpenJOC's OAMD diagnostic command for a bounded element-count report.
 
 If OpenJOC rendering fails, the backend may prepare the codec-core channel downmix through FFmpeg and marks that fallback explicitly. A cached fallback remains labelled as a fallback.
 
@@ -64,6 +64,7 @@ For a positively identified JOC source, the Source Inspector also exposes two tr
 
 - FFmpeg stream-copies the E-AC-3 audio stream to `.eac3`/`.ec3` without decoding or re-encoding;
 - OpenJOC scans all access units and writes forensic OAMD evidence to JSON.
+- OpenJOC renders decoded speaker feeds; FFmpeg channel splitting does not recover authored object stems.
 
 Both commands write a partial file, validate successful nonempty output (and valid JSON for diagnostics), then promote it to the user-selected destination. These operations preserve delivery data; they do not reconstruct authoring data.
 

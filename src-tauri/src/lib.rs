@@ -7,11 +7,14 @@ use std::{
     io::BufReader,
     path::{Path, PathBuf},
     process::{Command, Output, Stdio},
+    sync::atomic::{AtomicBool, Ordering},
     time::UNIX_EPOCH,
 };
 use tauri::Manager;
 
 mod damf;
+
+static DAMF_RENDER_CANCELLED: AtomicBool = AtomicBool::new(false);
 
 #[cfg(windows)]
 use std::os::windows::process::CommandExt;
@@ -345,7 +348,25 @@ fn render_with_ffmpeg(source: &Path, output_path: &Path) -> Result<(), String> {
     }
 }
 
-fn render_with_openjoc(renderer: &Path, source: &Path, output_path: &Path) -> Result<(), String> {
+fn speaker_labels(layout: &str) -> Result<&'static [&'static str], String> {
+    match layout {
+        "2.0" => Ok(&["L", "R"]),
+        "5.1" => Ok(&["L", "R", "C", "LFE", "Ls", "Rs"]),
+        "7.1" => Ok(&["L", "R", "C", "LFE", "Ls", "Rs", "Lrs", "Rrs"]),
+        "7.1.4" => Ok(&[
+            "L", "R", "C", "LFE", "Ls", "Rs", "Lrs", "Rrs", "Ltf", "Rtf", "Ltr", "Rtr",
+        ]),
+        _ => Err("Unsupported speaker layout. Choose 2.0, 5.1, 7.1, or 7.1.4.".to_owned()),
+    }
+}
+
+fn render_with_openjoc(
+    renderer: &Path,
+    source: &Path,
+    output_path: &Path,
+    layout: &str,
+) -> Result<(), String> {
+    speaker_labels(layout)?;
     let log_path = output_path.with_extension("openjoc.log");
     let stdout = File::create(&log_path)
         .map_err(|error| format!("Could not create the OpenJOC log: {error}"))?;
@@ -355,7 +376,7 @@ fn render_with_openjoc(renderer: &Path, source: &Path, output_path: &Path) -> Re
     let status = hidden_command(renderer)
         .arg("render-joc")
         .arg(source)
-        .args(["--layout", "2.0", "--output"])
+        .args(["--layout", layout, "--output"])
         .arg(output_path)
         .args(["--no-progress", "--overwrite"])
         .stdout(Stdio::from(stdout))
@@ -481,7 +502,8 @@ fn prepare_source(app: &tauri::AppHandle, path: &Path) -> Result<PreparedSource,
             true
         };
         if !was_cached {
-            if let Err(openjoc_error) = render_with_openjoc(&renderer, path, &playback_path) {
+            if let Err(openjoc_error) = render_with_openjoc(&renderer, path, &playback_path, "2.0")
+            {
                 render_with_ffmpeg(path, &playback_path)?;
                 used_openjoc = false;
                 let _ = fs::write(&render_kind_path, "codec-core-fallback");
@@ -556,14 +578,26 @@ async fn render_damf_variant(
     solo_id: Option<u32>,
     muted_ids: Vec<u32>,
 ) -> Result<String, String> {
+    DAMF_RENDER_CANCELLED.store(false, Ordering::Relaxed);
     tauri::async_runtime::spawn_blocking(move || {
         let path = PathBuf::from(path);
         let cache_root = prepared_cache_root(&app, &path)?;
-        damf::render_variant(&path, &cache_root, solo_id, &muted_ids)
-            .map(|output| output.to_string_lossy().into_owned())
+        damf::render_variant(
+            &path,
+            &cache_root,
+            solo_id,
+            &muted_ids,
+            &DAMF_RENDER_CANCELLED,
+        )
+        .map(|output| output.to_string_lossy().into_owned())
     })
     .await
     .map_err(|error| format!("DAMF re-render task failed: {error}"))?
+}
+
+#[tauri::command]
+fn cancel_damf_render() {
+    DAMF_RENDER_CANCELLED.store(true, Ordering::Relaxed);
 }
 
 #[tauri::command]
@@ -711,6 +745,114 @@ async fn export_oamd_diagnostics(
     .map_err(|error| format!("OAMD diagnostic export task failed: {error}"))?
 }
 
+#[tauri::command]
+async fn export_atmos_speaker_wav(
+    app: tauri::AppHandle,
+    source_path: String,
+    destination_path: String,
+    layout: String,
+) -> Result<u64, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        speaker_labels(&layout)?;
+        let source = PathBuf::from(source_path);
+        let probe = probe_path(&source)?;
+        if !probe.atmos {
+            return Err(
+                "Speaker rendering requires a positively identified E-AC-3 JOC source.".to_owned(),
+            );
+        }
+        let destination =
+            validate_export_destination(&source, Path::new(&destination_path), &["wav"])?;
+        let file_stem = destination
+            .file_stem()
+            .and_then(|stem| stem.to_str())
+            .unwrap_or("speaker-render");
+        let partial = destination.with_file_name(format!(".{file_stem}.partial.wav"));
+        if partial.is_file() {
+            fs::remove_file(&partial).map_err(|error| {
+                format!("Could not replace an incomplete speaker render: {error}")
+            })?;
+        }
+        let renderer = locate_openjoc(&app)?;
+        let render_result = render_with_openjoc(&renderer, &source, &partial, &layout);
+        let _ = fs::remove_file(partial.with_extension("openjoc.log"));
+        if let Err(error) = render_result {
+            let _ = fs::remove_file(&partial);
+            return Err(error);
+        }
+        promote_export(&partial, &destination, "Atmos speaker render")
+    })
+    .await
+    .map_err(|error| format!("Atmos speaker render task failed: {error}"))?
+}
+
+#[tauri::command]
+async fn export_atmos_speaker_channels(
+    app: tauri::AppHandle,
+    source_path: String,
+    destination_dir: String,
+    layout: String,
+) -> Result<Vec<String>, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let labels = speaker_labels(&layout)?;
+        let source = PathBuf::from(source_path);
+        let probe = probe_path(&source)?;
+        if !probe.atmos {
+            return Err(
+                "Speaker-channel rendering requires a positively identified E-AC-3 JOC source."
+                    .to_owned(),
+            );
+        }
+        let destination_dir = PathBuf::from(destination_dir)
+            .canonicalize()
+            .map_err(|error| {
+                format!("Could not resolve the speaker-channel export folder: {error}")
+            })?;
+        if !destination_dir.is_dir() {
+            return Err("The speaker-channel export destination is not a directory.".to_owned());
+        }
+        let cache_dir = prepared_cache_root(&app, &source)?.join("speaker-exports");
+        fs::create_dir_all(&cache_dir)
+            .map_err(|error| format!("Could not create the speaker render cache: {error}"))?;
+        let rendered = cache_dir.join(format!("render-{layout}.wav"));
+        let renderer = locate_openjoc(&app)?;
+        render_with_openjoc(&renderer, &source, &rendered, &layout)?;
+
+        let source_stem = source
+            .file_stem()
+            .and_then(|stem| stem.to_str())
+            .unwrap_or("atmos-render");
+        let mut exported = Vec::with_capacity(labels.len());
+        for (index, label) in labels.iter().enumerate() {
+            let destination = destination_dir.join(format!("{source_stem}-{layout}-{label}.wav"));
+            let partial =
+                destination_dir.join(format!(".{source_stem}-{layout}-{label}.partial.wav"));
+            if partial.is_file() {
+                fs::remove_file(&partial).map_err(|error| {
+                    format!("Could not replace an incomplete {label} channel export: {error}")
+                })?;
+            }
+            let pan = format!("pan=mono|c0=c{index}");
+            let output = hidden_command("ffmpeg")
+                .args(["-v", "error", "-y", "-i"])
+                .arg(&rendered)
+                .args(["-map", "0:a:0", "-af", &pan, "-c:a", "pcm_f32le"])
+                .arg(&partial)
+                .output()
+                .map_err(|error| format!("ffmpeg could not export the {label} channel: {error}"))?;
+            if !output.status.success() {
+                let _ = fs::remove_file(&partial);
+                return Err(command_error(&format!("{label} channel export"), &output));
+            }
+            promote_export(&partial, &destination, &format!("{label} channel export"))?;
+            exported.push(destination.to_string_lossy().into_owned());
+        }
+        Ok(exported)
+    })
+    .await
+    .map_err(|error| format!("Atmos speaker-channel export task failed: {error}"))?
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -719,10 +861,13 @@ pub fn run() {
             probe_media,
             prepare_local_source,
             render_damf_variant,
+            cancel_damf_render,
             read_local_text,
             export_wav,
             export_eac3_bitstream,
-            export_oamd_diagnostics
+            export_oamd_diagnostics,
+            export_atmos_speaker_wav,
+            export_atmos_speaker_channels
         ])
         .run(tauri::generate_context!())
         .expect("error while running Immersive Audio Renderer");
@@ -780,5 +925,15 @@ mod tests {
             &["ec3", "eac3"]
         )
         .is_err());
+    }
+
+    #[test]
+    fn exposes_supported_speaker_channel_orders() {
+        assert_eq!(speaker_labels("2.0").unwrap(), &["L", "R"]);
+        assert_eq!(
+            speaker_labels("5.1").unwrap(),
+            &["L", "R", "C", "LFE", "Ls", "Rs"]
+        );
+        assert!(speaker_labels("9.1.6").is_err());
     }
 }

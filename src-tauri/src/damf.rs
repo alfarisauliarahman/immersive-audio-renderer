@@ -4,6 +4,7 @@ use std::{
     fs::{self, File},
     io::{BufReader, BufWriter, Read, Seek, SeekFrom, Write},
     path::{Path, PathBuf},
+    sync::atomic::{AtomicBool, Ordering},
 };
 
 const ANALYSIS_FREQUENCY: f64 = 0.1;
@@ -496,6 +497,7 @@ fn render(
     solo_id: Option<u32>,
     muted_ids: &HashSet<u32>,
     analyze: bool,
+    cancel: Option<&AtomicBool>,
 ) -> Result<Option<Analysis>, String> {
     let frames = source.caf.frames();
     let sample_rate = source.caf.sample_rate;
@@ -550,6 +552,11 @@ fn render(
     let solo_channel = solo_id.map(|id| id as usize);
 
     while sample_pos < frames {
+        if cancel.is_some_and(|flag| flag.load(Ordering::Relaxed)) {
+            drop(writer);
+            let _ = fs::remove_file(&partial_path);
+            return Err("DAMF render cancelled.".to_owned());
+        }
         let count = ((frames - sample_pos) as usize).min(block_frames);
         let input_bytes = count * frame_bytes;
         reader
@@ -671,6 +678,7 @@ fn render_muted_from_full(
     full_path: &Path,
     output_path: &Path,
     muted_ids: &HashSet<u32>,
+    cancel: &AtomicBool,
 ) -> Result<(), String> {
     let frames = source.caf.frames();
     let sample_rate = source.caf.sample_rate;
@@ -716,6 +724,11 @@ fn render_muted_from_full(
     let global_gain = 0.25_f32;
 
     while sample_pos < frames {
+        if cancel.load(Ordering::Relaxed) {
+            drop(writer);
+            let _ = fs::remove_file(&partial_path);
+            return Err("DAMF render cancelled.".to_owned());
+        }
         let count = ((frames - sample_pos) as usize).min(block_frames);
         source_reader
             .read_exact(&mut input[..count * frame_bytes])
@@ -879,7 +892,7 @@ pub fn prepare(path: &Path, cache_dir: &Path) -> Result<PreparedDamf, String> {
             .map(|metadata| metadata.len() > 44)
             .unwrap_or(false);
     if !cached {
-        let analysis = render(&source, &playback_path, None, &HashSet::new(), true)?
+        let analysis = render(&source, &playback_path, None, &HashSet::new(), true, None)?
             .ok_or_else(|| "DAMF analysis was not generated.".to_owned())?;
         let timeline = build_timeline(&source, analysis);
         let partial = timeline_path.with_extension("json.partial");
@@ -913,6 +926,7 @@ pub fn render_variant(
     cache_dir: &Path,
     solo_id: Option<u32>,
     muted_ids: &[u32],
+    cancel: &AtomicBool,
 ) -> Result<PathBuf, String> {
     let source = load_source(path)?;
     if let Some(id) = solo_id {
@@ -963,12 +977,12 @@ pub fn render_variant(
         if solo_id.is_none() && !muted.is_empty() {
             let full_path = cache_dir.join("damf-full.wav");
             if full_path.is_file() {
-                render_muted_from_full(&source, &full_path, &output_path, &muted)?;
+                render_muted_from_full(&source, &full_path, &output_path, &muted, cancel)?;
             } else {
-                render(&source, &output_path, None, &muted, false)?;
+                render(&source, &output_path, None, &muted, false, Some(cancel))?;
             }
         } else {
-            render(&source, &output_path, solo_id, &muted, false)?;
+            render(&source, &output_path, solo_id, &muted, false, Some(cancel))?;
         }
     }
     Ok(output_path)
@@ -1042,9 +1056,10 @@ mod tests {
             .presentation
             .objects[0]
             .id;
-        let solo = render_variant(Path::new(&path), &cache, Some(first_object), &[])
+        let cancel = AtomicBool::new(false);
+        let solo = render_variant(Path::new(&path), &cache, Some(first_object), &[], &cancel)
             .expect("object solo should render");
-        let muted = render_variant(Path::new(&path), &cache, None, &[first_object])
+        let muted = render_variant(Path::new(&path), &cache, None, &[first_object], &cancel)
             .expect("object mute should render");
         assert!(solo.is_file());
         assert!(muted.is_file());

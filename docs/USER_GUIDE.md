@@ -10,7 +10,7 @@ The initial screen loads the configured demonstration source when its local medi
 
 - **Top bar** — monitor mode, source selection mode, timecode, transport, attenuation, DIM, MUTE, and output-view controls.
 - **Renderer Inputs** — overview of up to 128 logical inputs; active elements are lit and the selected input is highlighted.
-- **Output meters** — live post-monitor stereo signal and metadata-projected 7.1.4 scene view.
+- **Output meters** — live post-monitor stereo signal and a metadata-projected view that follows the probed source layout.
 - **Loudness** — live monitor estimates, not certified delivery measurements.
 - **Speaker View** — top-down 2D projection of the current scene.
 - **Room View** — interactive 3D position view.
@@ -41,6 +41,10 @@ For a positively identified JOC source, open **SOURCE INFO** and use:
 
 - **EXTRACT .EAC3** to stream-copy the E-AC-3 delivery bitstream without re-encoding;
 - **EXPORT OAMD JSON** to scan all access units and save OpenJOC's forensic diagnostic evidence.
+- **RENDER _layout_ WAV** to save one decoded multichannel speaker render;
+- **SPLIT _layout_ CHANNELS** to save one mono WAV per rendered speaker feed.
+
+The split files (L, R, C, LFE, surrounds, and heights where applicable) are speaker outputs. They are not original Atmos object stems.
 
 The exports can be large and may take time. They are not a recovered `.atmos` master, authored trajectory file, or object-stem package.
 
@@ -105,6 +109,8 @@ The Room View coordinates are a UI projection of the normalized scene. For JOC t
 ## Exporting a monitor WAV
 
 After a native source has a completed prepared playback WAV, choose **EXPORT WAV**. The filename indicates whether the active output is a full stereo monitor, object solo, or muted-object variant.
+
+DAMF SOLO/MUTE rendering exposes a **CANCEL** button while PCM is being processed. Cancellation removes the incomplete render and leaves the previously active monitor unchanged.
 
 Export copies the current two-channel monitor render. It does not export a new DAMF, encoded Atmos delivery master, or isolated stem set beyond a currently prepared DAMF solo preview.
 

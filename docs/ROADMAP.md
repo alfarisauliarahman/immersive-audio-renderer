@@ -13,7 +13,7 @@ This roadmap records intended work, not promises. Capability claims in the READM
 
 ## High priority
 
-- Add cancellable background jobs and visible progress for FFmpeg, OpenJOC, and DAMF preparation.
+- Extend the existing DAMF SOLO/MUTE cancellation to FFmpeg, OpenJOC, and initial DAMF preparation, with visible progress.
 - Prevent concurrent duplicate renders of the same source/variant.
 - Add cache management and cache-size visibility.
 - Add clean, redistributable synthetic WAV + JSON test fixtures.

@@ -78,6 +78,26 @@ export async function selectOamdJsonExportDestination(defaultPath: string): Prom
   return typeof selected === "string" ? selected : null;
 }
 
+export async function selectSpeakerWavExportDestination(defaultPath: string, layout: string): Promise<string | null> {
+  const { save } = await import("@tauri-apps/plugin-dialog");
+  const selected = await save({
+    title: `Render ${layout} speaker output`,
+    defaultPath,
+    filters: [{ name: "Multichannel Wave audio", extensions: ["wav"] }],
+  });
+  return typeof selected === "string" ? selected : null;
+}
+
+export async function selectSpeakerChannelDirectory(): Promise<string | null> {
+  const { open } = await import("@tauri-apps/plugin-dialog");
+  const selected = await open({
+    title: "Choose a folder for mono speaker-channel WAV files",
+    directory: true,
+    multiple: false,
+  });
+  return typeof selected === "string" ? selected : null;
+}
+
 export const exportNativeWav = (playbackPath: string, destinationPath: string) =>
   invoke<number>("export_wav", { playbackPath, destinationPath });
 
@@ -86,6 +106,12 @@ export const exportEac3Bitstream = (sourcePath: string, destinationPath: string)
 
 export const exportOamdDiagnostics = (sourcePath: string, destinationPath: string) =>
   invoke<number>("export_oamd_diagnostics", { sourcePath, destinationPath });
+
+export const exportAtmosSpeakerWav = (sourcePath: string, destinationPath: string, layout: string) =>
+  invoke<number>("export_atmos_speaker_wav", { sourcePath, destinationPath, layout });
+
+export const exportAtmosSpeakerChannels = (sourcePath: string, destinationDir: string, layout: string) =>
+  invoke<string[]>("export_atmos_speaker_channels", { sourcePath, destinationDir, layout });
 
 export const probeNativeMedia = (path: string) => invoke<MediaProbe>("probe_media", { path });
 
@@ -105,3 +131,5 @@ export async function renderNativeDamfVariant(
   });
   return { playbackPath, playbackUrl: convertFileSrc(playbackPath) };
 }
+
+export const cancelNativeDamfRender = () => invoke<void>("cancel_damf_render");

@@ -6,7 +6,10 @@ import {
   parseDolbyDemoScene,
 } from "../adapters/dolbyDemo";
 import {
+  cancelNativeDamfRender,
   desktopRuntimeAvailable,
+  exportAtmosSpeakerChannels,
+  exportAtmosSpeakerWav,
   exportEac3Bitstream,
   exportNativeWav,
   exportOamdDiagnostics,
@@ -17,10 +20,13 @@ import {
   selectEac3ExportDestination,
   selectNativeMedia,
   selectOamdJsonExportDestination,
+  selectSpeakerChannelDirectory,
+  selectSpeakerWavExportDestination,
   selectWavExportDestination,
   type MediaProbe,
 } from "../adapters/nativeMedia";
 import { isShortcutEditableTarget, resolveRendererShortcut } from "../domain/keyboard";
+import { resolveSpeakerLayout } from "../domain/speakerLayout";
 import { EMPTY_SAMPLE, sampleScene, type AudioScene } from "../domain/scene";
 import { useAudioTransport } from "../hooks/useAudioTransport";
 import { InputMatrix } from "./InputMatrix";
@@ -277,7 +283,8 @@ export function RendererApp() {
       setSoloObjectId(nextSoloId);
       setMutedObjectIds(new Set(nextMutedIds));
     } catch (reason) {
-      setSceneError(reason instanceof Error ? reason.message : "The DAMF object variant could not be rendered.");
+      const message = reason instanceof Error ? reason.message : "The DAMF object variant could not be rendered.";
+      if (!message.toLowerCase().includes("cancelled")) setSceneError(message);
     } finally {
       setProcessing(null);
     }
@@ -295,6 +302,14 @@ export function RendererApp() {
     if (nextMuted.has(selectedObject.id)) nextMuted.delete(selectedObject.id);
     else nextMuted.add(selectedObject.id);
     void applyDamfVariant(soloObjectId, nextMuted);
+  };
+
+  const cancelProcessing = async () => {
+    const cancellable = processing?.startsWith("RENDERING AUTHORED OBJECT")
+      || processing === "RENDERING DAMF OBJECT MUTES";
+    if (!cancellable) return;
+    setProcessing("CANCELLING DAMF RENDER");
+    await cancelNativeDamfRender();
   };
 
   const handleOpenClick = () => {
@@ -361,6 +376,43 @@ export function RendererApp() {
     }
   };
 
+  const exportSpeakerRender = async () => {
+    if (!nativeSourcePath || sourceDetails.badge !== "OPENJOC ATMOS" || processing) return;
+    const layout = resolveSpeakerLayout(sourceDetails.probe);
+    const sourceStem = (sourceDetails.probe?.fileName ?? "atmos-render").replace(/\.[^.]+$/, "");
+    setSceneError(null);
+    setExportNotice(null);
+    try {
+      const destination = await selectSpeakerWavExportDestination(`${sourceStem}-${layout.id}.wav`, layout.id);
+      if (!destination) return;
+      setProcessing(`RENDERING ATMOS TO ${layout.id} SPEAKER WAV`);
+      const bytes = await exportAtmosSpeakerWav(nativeSourcePath, destination, layout.id);
+      setExportNotice(`EXPORTED ${layout.id} SPEAKER WAV ${(bytes / 1_048_576).toFixed(1)} MB · ${destination}`);
+    } catch (reason) {
+      setSceneError(reason instanceof Error ? reason.message : "The Atmos speaker render could not be exported.");
+    } finally {
+      setProcessing(null);
+    }
+  };
+
+  const exportSpeakerChannels = async () => {
+    if (!nativeSourcePath || sourceDetails.badge !== "OPENJOC ATMOS" || processing) return;
+    const layout = resolveSpeakerLayout(sourceDetails.probe);
+    setSceneError(null);
+    setExportNotice(null);
+    try {
+      const destinationDir = await selectSpeakerChannelDirectory();
+      if (!destinationDir) return;
+      setProcessing(`RENDERING AND SPLITTING ${layout.id} SPEAKER CHANNELS`);
+      const paths = await exportAtmosSpeakerChannels(nativeSourcePath, destinationDir, layout.id);
+      setExportNotice(`EXPORTED ${paths.length} MONO SPEAKER WAV FILES · ${destinationDir}`);
+    } catch (reason) {
+      setSceneError(reason instanceof Error ? reason.message : "The Atmos speaker channels could not be exported.");
+    } finally {
+      setProcessing(null);
+    }
+  };
+
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       const shortcut = resolveRendererShortcut({
@@ -408,7 +460,8 @@ export function RendererApp() {
 
   const selectedObject = sample.objects.find((object) => object.inputId === selectedInput);
   const statusError = sceneError ?? transport.error;
-  const canExportDeliveryData = Boolean(nativeSourcePath && sourceDetails.probe?.atmos && desktopRuntimeAvailable());
+  const canExportDeliveryData = Boolean(nativeSourcePath && sourceDetails.badge === "OPENJOC ATMOS" && desktopRuntimeAvailable());
+  const speakerLayout = resolveSpeakerLayout(sourceDetails.probe);
 
   return (
     <main className="renderer-app">
@@ -458,8 +511,10 @@ export function RendererApp() {
                   <div className="delivery-export-actions">
                     <button disabled={Boolean(processing)} onClick={() => void exportDeliveryBitstream()}>EXTRACT .EAC3</button>
                     <button disabled={Boolean(processing)} onClick={() => void exportDiagnosticJson()}>EXPORT OAMD JSON</button>
+                    <button disabled={Boolean(processing)} onClick={() => void exportSpeakerRender()}>RENDER {speakerLayout.id} WAV</button>
+                    <button disabled={Boolean(processing)} onClick={() => void exportSpeakerChannels()}>SPLIT {speakerLayout.id} CHANNELS</button>
                   </div>
-                  <p>Stream-copy and forensic diagnostics only. These exports cannot recreate a DAMF, authored trajectories, or lossless object stems.</p>
+                  <p>Speaker WAV exports are decoded render feeds, not original object stems. E-AC-3 extraction and OAMD JSON remain delivery/forensic data and cannot recreate a DAMF.</p>
                 </div>
               )}
             </section>
@@ -501,7 +556,7 @@ export function RendererApp() {
         <InputMatrix sample={sample} selectedInput={selectedInput} onSelect={setSelectedInput} />
         <div className="main-deck">
           <div className="meter-row">
-            <OutputMeters sample={sample} signal={transport.signal} />
+            <OutputMeters sample={sample} signal={transport.signal} probe={sourceDetails.probe} />
             <LoudnessPanel signal={transport.signal} />
           </div>
           <div className="visual-row">
@@ -549,7 +604,14 @@ export function RendererApp() {
       <Timeline currentTime={transport.currentTime} duration={transport.duration || scene?.duration || 0} onSeek={transport.seek} />
       {processing && (
         <div className="processing-overlay" role="status" aria-live="polite">
-          <div className="processing-dialog"><i /><strong>{processing}</strong><span>Processing stays entirely on this computer.</span></div>
+          <div className="processing-dialog">
+            <i /><strong>{processing}</strong><span>Processing stays entirely on this computer.</span>
+            {(processing.startsWith("RENDERING AUTHORED OBJECT") || processing === "RENDERING DAMF OBJECT MUTES" || processing === "CANCELLING DAMF RENDER") && (
+              <button disabled={processing === "CANCELLING DAMF RENDER"} onClick={() => void cancelProcessing()}>
+                {processing === "CANCELLING DAMF RENDER" ? "CANCELLING…" : "CANCEL"}
+              </button>
+            )}
+          </div>
         </div>
       )}
       {statusError && <div className="error-toast">{statusError}</div>}

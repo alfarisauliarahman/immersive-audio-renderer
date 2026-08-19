@@ -10,6 +10,9 @@ All notable project changes are documented here. The format follows [Keep a Chan
 - Keyboard shortcuts for transport, seeking, monitor controls, source opening, and information panels, with an in-app reference.
 - Transactional E-AC-3 elementary-stream extraction from native JOC sources without re-encoding.
 - Transactional all-access-unit OpenJOC OAMD forensic JSON export.
+- OpenJOC speaker rendering to a source-matched multichannel WAV or separate mono speaker-feed WAV files.
+- Source-layout-aware scene proxy meters while retaining an honest `LIVE 2.0` audible-monitor view.
+- Cooperative cancellation for DAMF SOLO/MUTE renders and a console-free Windows release executable.
 
 ### Changed
 

@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import type { SceneSample, Vec3 } from "../domain/scene";
 import type { MonitorSignal } from "../hooks/useAudioTransport";
+import type { MediaProbe } from "../adapters/nativeMedia";
+import { resolveSpeakerLayout } from "../domain/speakerLayout";
 
 const speakers: Array<{ label: string; position: Vec3 }> = [
   { label: "L", position: { x: -0.8, y: 1, z: 0 } },
@@ -32,15 +34,17 @@ function calculateMeter(position: Vec3, sample: SceneSample) {
   return Math.max(-60, Math.min(0, db));
 }
 
-export function OutputMeters({ sample, signal }: { sample: SceneSample; signal: MonitorSignal }) {
+export function OutputMeters({ sample, signal, probe }: { sample: SceneSample; signal: MonitorSignal; probe: MediaProbe | null }) {
   const [mode, setMode] = useState<"live" | "scene">("live");
+  const sourceLayout = resolveSpeakerLayout(probe);
+  const sourceSpeakers = speakers.filter((speaker) => sourceLayout.labels.includes(speaker.label));
   const sceneLevels = useMemo(
-    () => speakers.map((speaker) => calculateMeter(speaker.position, sample)),
-    [sample],
+    () => sourceSpeakers.map((speaker) => calculateMeter(speaker.position, sample)),
+    [sample, sourceLayout.id],
   );
   const channels = mode === "live"
     ? [{ label: "L", level: signal.leftDb }, { label: "R", level: signal.rightDb }]
-    : speakers.map((speaker, index) => ({ label: speaker.label, level: sceneLevels[index] }));
+    : sourceSpeakers.map((speaker, index) => ({ label: speaker.label, level: sceneLevels[index] }));
 
   return (
     <section className="meter-panel panel-frame">
@@ -48,7 +52,7 @@ export function OutputMeters({ sample, signal }: { sample: SceneSample; signal: 
         <h2>Output</h2>
         <div className="section-mode-buttons">
           <button className={mode === "live" ? "active" : ""} onClick={() => setMode("live")}>LIVE 2.0</button>
-          <button className={mode === "scene" ? "active" : ""} onClick={() => setMode("scene")}>SCENE 7.1.4</button>
+          <button className={mode === "scene" ? "active" : ""} onClick={() => setMode("scene")}>SOURCE PROXY {sourceLayout.id}</button>
         </div>
       </div>
       <div className={`meter-rack ${mode === "live" ? "live-meter-rack" : ""}`}>

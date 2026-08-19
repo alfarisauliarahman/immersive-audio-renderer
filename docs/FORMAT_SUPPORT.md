@@ -5,8 +5,8 @@
 | Source | Import | Audible output | Position data | Independent object PCM | Solo/mute | Export |
 | --- | --- | --- | --- | --- | --- | --- |
 | DAMF `.atmos` fileset | Native | Independent 2.0 preview | Authored | Yes | Yes | Current stereo monitor WAV |
-| E-AC-3 JOC in `.m4a`/`.mp4` | OpenJOC, FFmpeg core fallback | 2.0 speaker render or labelled core downmix | Diagnostic proxy only | No verified authored stems | No | Stereo monitor WAV, stream-copied `.eac3`/`.ec3`, forensic OAMD JSON |
-| Raw `.ec3`/`.eac3` | Same JOC path when positively detected | Same as above | Diagnostic proxy only | No verified authored stems | No | Stereo monitor WAV, copied delivery bitstream, forensic OAMD JSON |
+| E-AC-3 JOC in `.m4a`/`.mp4` | OpenJOC, FFmpeg core fallback | 2.0 monitor plus speaker-layout export | Diagnostic proxy only | No verified authored stems | No | Stereo monitor WAV, multichannel/split speaker WAV, stream-copied `.eac3`/`.ec3`, forensic OAMD JSON |
+| Raw `.ec3`/`.eac3` | Same JOC path when positively detected | Same as above | Diagnostic proxy only | No verified authored stems | No | Stereo monitor WAV, multichannel/split speaker WAV, copied delivery bitstream, forensic OAMD JSON |
 | PCM WAV | Direct when supported | Original PCM WAV | None unless paired JSON is opened | No | No | Prepared/current WAV when native path is used |
 | FLAC, MP3, AAC, Ogg, Opus | FFmpeg preparation | 48 kHz stereo float WAV | None | No | No | Prepared stereo monitor WAV |
 | Stereo audio + compatible JSON timeline | Browser or native pair | Finished stereo audio | Visualization timeline | No | No | Native prepared WAV when available |
@@ -39,6 +39,7 @@ The application can:
 - inspect bounded OAMD diagnostics such as an element count;
 - export forensic OAMD evidence for all access units as JSON;
 - stream-copy the contained E-AC-3 audio to an elementary `.eac3`/`.ec3` file without re-encoding;
+- render a supported speaker layout to one multichannel WAV or split it into mono L/R/C/LFE/etc. speaker feeds;
 - fall back to an explicitly labelled codec-core downmix if JOC rendering fails.
 
 The application cannot truthfully claim that it can:
@@ -50,7 +51,7 @@ The application cannot truthfully claim that it can:
 - identify reconstruction rows as semantic objects such as vocal, drum, or effect stems;
 - provide object solo/mute from that delivery master.
 
-An E-AC-3 elementary stream can be extracted from an MP4/M4A container without turning it back into an authoring master. Diagnostic OpenJOC output can also be serialized as JSON, but it remains forensic bit evidence rather than a recovered DAMF scene. Both export actions are available in Source Inspector only after the native source is positively detected as JOC.
+An E-AC-3 elementary stream can be extracted from an MP4/M4A container without turning it back into an authoring master. Diagnostic OpenJOC output can also be serialized as JSON, but it remains forensic bit evidence rather than a recovered DAMF scene. Speaker exports are decoded projection feeds: a file called `C.wav` is the center-speaker render, not an authored object channel. These actions are available in Source Inspector only after the native source is positively detected as JOC.
 
 ## WAV + JSON visualizer datasets
 
@@ -67,7 +68,7 @@ The development pair originally examined for this adapter came from the official
 
 ## Meters and loudness
 
-`LIVE 2.0` meters read the audible post-monitor stereo signal. `SCENE 7.1.4` is a spatial projection from scene metadata, not a 12-channel hardware output meter.
+`LIVE 2.0` meters read the audible post-monitor stereo signal. `SOURCE PROXY` follows the probed source topology (for example 5.1 instead of a hardcoded 7.1.4) but remains a spatial projection from scene metadata, not a hardware output meter or decoded per-channel measurement.
 
 Momentary, short-term, integrated, and range values are useful live estimates derived from the Web Audio samples. They are not a standards-compliant loudness report and must not be used for delivery QC or certification.
 

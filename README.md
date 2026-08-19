@@ -9,7 +9,7 @@ This is an inspection and preview tool. It is not Dolby's licensed renderer, is 
 - Native Dolby Atmos Master Fileset (`.atmos`) loading with `.atmos.audio`, `.atmos.metadata`, and `.atmos.dbmd` companion validation.
 - Authored DAMF trajectories, object levels, object solo/mute preview renders, stereo monitor export, and render caching.
 - E-AC-3 JOC sources in M4A/MP4 or raw EC-3 containers through the bundled OpenJOC 0.7.0 command-line renderer.
-- Lossless container-level extraction of an E-AC-3 elementary stream plus forensic all-access-unit OAMD diagnostic JSON export.
+- Lossless container-level extraction of an E-AC-3 elementary stream, forensic OAMD JSON, and decoded speaker-feed export as multichannel or split mono WAV.
 - Ordinary WAV, FLAC, MP3, AAC, Ogg, and Opus inspection and stereo preparation through system-provided FFmpeg/ffprobe.
 - Paired stereo WAV + object-timeline JSON playback for visualizer-style datasets.
 - Live post-monitor stereo meters, signal-derived loudness estimates, 128-input overview, speaker view, and an interactive orbit/pan/zoom WebGL room.
@@ -60,11 +60,11 @@ Some native integration tests require locally held media fixtures. See [Testing]
 | Source | Audible path | Position display | Object solo/mute |
 | --- | --- | --- | --- |
 | DAMF `.atmos` fileset | Independent stereo preview renderer | Authored trajectory | Yes |
-| E-AC-3 JOC delivery master | OpenJOC 2.0 speaker render, with FFmpeg core fallback | Diagnostic proxy only | No |
+| E-AC-3 JOC delivery master | OpenJOC speaker render (2.0 monitor; 2.0/5.1/7.1/7.1.4 export), with FFmpeg core fallback | Diagnostic proxy only | No |
 | Stereo WAV + timeline JSON | Finished stereo audio | Supplied visualization timeline | No |
 | Ordinary local audio | FFmpeg-prepared or directly playable stereo | None | No |
 
-An M4A Atmos delivery master may expose an E-AC-3 bitstream and diagnostic metadata, but it cannot reconstruct the original DAMF, lossless authored trajectories, or independently addressable object stems. The Source Inspector can export the delivery bitstream and forensic OAMD JSON while preserving those labels. See [Format support and boundaries](docs/FORMAT_SUPPORT.md).
+An M4A Atmos delivery master may expose an E-AC-3 bitstream and diagnostic metadata, but it cannot reconstruct the original DAMF, lossless authored trajectories, or independently addressable object stems. The Source Inspector can export the delivery bitstream, forensic OAMD JSON, and OpenJOC-rendered speaker feeds. Split L/R/C/LFE/etc. files are decoded speaker outputs—not recovered object stems. See [Format support and boundaries](docs/FORMAT_SUPPORT.md).
 
 ## Repositories actually used
 

@@ -71,4 +71,4 @@ When diagnosing unexpected idle GPU use:
 - Mute can subtract selected contributions from a cached full mix.
 - Completed full/solo/mute renders are cached independently.
 
-Future work should prioritize cancellable background rendering, progress reporting, bounded render concurrency, and profiling of React updates before adding lower-value visual effects.
+DAMF SOLO/MUTE jobs now support cooperative cancellation at PCM-block boundaries. Future work should extend cancellation and progress reporting to preparation, FFmpeg, and OpenJOC jobs, add bounded render concurrency, and profile React updates before adding lower-value visual effects.
