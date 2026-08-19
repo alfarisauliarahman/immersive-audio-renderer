@@ -1,17 +1,27 @@
 # Format Support and Product Boundaries
 
+## Current validation status
+
+This is an early support matrix, not a certification claim. v0.1.0 has only been tested against the fixtures legally available to the developer. A format can have an implemented code path while still needing broader testing across encoders, profiles, channel layouts, durations, and malformed inputs.
+
+Status terms used below:
+
+- **Fixture-tested** — exercised end to end with at least one real/local development fixture in the current release cycle.
+- **Partially tested** — core probing or conversion behavior was exercised, but representative format variants are still missing.
+- **Implemented, broader testing pending** — a code path exists, primarily through bundled FFmpeg/OpenJOC, but the format has not yet received dedicated end-to-end regression coverage.
+
 ## Capability matrix
 
-| Source | Import | Audible output | Position data | Independent object PCM | Solo/mute | Export |
-| --- | --- | --- | --- | --- | --- | --- |
-| DAMF `.atmos` fileset | Native | Independent 2.0 preview | Authored | Yes | Yes | Current stereo monitor WAV |
-| E-AC-3 JOC in `.m4a`/`.mp4` | OpenJOC, FFmpeg core fallback | 2.0 monitor plus speaker-layout export | Diagnostic proxy only | No verified authored stems | No | Stereo monitor WAV, multichannel/split speaker WAV, stream-copied `.eac3`/`.ec3`, forensic OAMD JSON |
-| Raw `.ec3`/`.eac3` | Same JOC path when positively detected | Same as above | Diagnostic proxy only | No verified authored stems | No | Stereo monitor WAV, multichannel/split speaker WAV, copied delivery bitstream, forensic OAMD JSON |
-| PCM WAV | Direct when supported | Original PCM WAV | None unless paired JSON is opened | No | No | Prepared/current WAV when native path is used |
-| FLAC, MP3, AAC, Ogg, Opus | FFmpeg preparation | 48 kHz stereo float WAV | None | No | No | Prepared stereo monitor WAV |
-| Stereo audio + compatible JSON timeline | Browser or native pair | Finished stereo audio | Visualization timeline | No | No | Native prepared WAV when available |
+| Source | Validation in v0.1.0 | Import | Audible output | Position data | Independent object PCM | Solo/mute | Export |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| DAMF `.atmos` fileset | Fixture-tested with the available authored master | Native | Independent 2.0 preview | Authored | Yes | Yes | Current stereo monitor WAV |
+| E-AC-3 JOC in `.m4a`/`.mp4` | Fixture-tested with the available M4A delivery master, including 5.1/split-feed smoke tests | OpenJOC, FFmpeg core fallback | 2.0 monitor plus speaker-layout export | Diagnostic proxy only | No verified authored stems | No | Stereo monitor WAV, multichannel/split speaker WAV, stream-copied `.eac3`/`.ec3`, forensic OAMD JSON |
+| Raw `.ec3`/`.eac3` | Partially tested through extracted delivery data; broader standalone inputs pending | Same JOC path when positively detected | Same as above | Diagnostic proxy only | No verified authored stems | No | Stereo monitor WAV, multichannel/split speaker WAV, copied delivery bitstream, forensic OAMD JSON |
+| PCM WAV | Fixture-tested with the available PCM/Broadcast WAV material | Direct when supported | Original PCM WAV | None unless paired JSON is opened | No | No | Prepared/current WAV when native path is used |
+| FLAC, MP3, AAC, Ogg, Opus | Implemented through bundled FFmpeg; dedicated per-format regression fixtures pending | FFmpeg preparation | 48 kHz stereo float WAV | None | No | No | Prepared stereo monitor WAV |
+| Stereo audio + compatible JSON timeline | Fixture-tested with the available local visualizer pair | Browser or native pair | Finished stereo audio | Visualization timeline | No | No | Native prepared WAV when available |
 
-The native file dialog also permits arbitrary files, but inclusion in the dialog is not a promise that every codec or malformed container is supported. FFmpeg build configuration determines ordinary codec availability.
+The native file dialog also permits arbitrary files, but inclusion in the dialog is not a promise that every codec or malformed container is supported. FFmpeg build configuration determines ordinary codec availability. Items marked as pending should be treated as experimental until dedicated regression fixtures and acceptance results are added.
 
 ## DAMF requirements
 

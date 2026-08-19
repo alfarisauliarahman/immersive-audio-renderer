@@ -4,6 +4,18 @@ Immersive Audio Renderer is an independent Windows desktop application for inspe
 
 This is an inspection and preview tool. It is not Dolby's licensed renderer, is not a mastering or certification system, and is not affiliated with or endorsed by Dolby Laboratories.
 
+## Why this exists
+
+This project started from wanting to explore the workflow and interface ideas of professional object-audio tools—especially Dolby Atmos Renderer—but not being able to justify the cost of the commercial software for personal learning. So I built an independent tool that I could study, inspect, and experiment with instead.
+
+It is inspired by that kind of renderer workflow, not built from Dolby source code and not intended to bypass a license, reproduce Dolby's proprietary rendering algorithms, or replace the official product in professional delivery. The goal is a practical, transparent learning and inspection environment with honest labels wherever the available source data cannot support a real authored-object claim.
+
+## v0.1 validation scope
+
+Format support is still early. The current release has been exercised with the specific DAMF, E-AC-3 JOC/M4A, PCM WAV, and WAV + visualization-JSON fixtures available during development. Other listed FFmpeg-backed formats and container/codec variants are implemented paths, but have not all received representative end-to-end regression testing yet. Broader fixture coverage will follow in later releases.
+
+In other words, “supported” currently means the application has a code path for the format—not that every encoder, profile, malformed file, or real-world variant has already been verified. See [Format support and boundaries](docs/FORMAT_SUPPORT.md) for the current per-format validation status.
+
 ## What works
 
 - Native Dolby Atmos Master Fileset (`.atmos`) loading with `.atmos.audio`, `.atmos.metadata`, and `.atmos.dbmd` companion validation.

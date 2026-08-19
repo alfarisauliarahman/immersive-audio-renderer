@@ -13,6 +13,7 @@ This roadmap records intended work, not promises. Capability claims in the READM
 
 ## High priority
 
+- Add redistributable end-to-end regression fixtures for FLAC, MP3, AAC, Ogg, Opus, raw EC-3/E-AC-3, and additional container/profile variants before promoting them from provisional support.
 - Extend the existing DAMF SOLO/MUTE cancellation to FFmpeg, OpenJOC, and initial DAMF preparation, with visible progress.
 - Prevent concurrent duplicate renders of the same source/variant.
 - Add cache management and cache-size visibility.
